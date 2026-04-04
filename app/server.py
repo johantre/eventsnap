@@ -1081,13 +1081,16 @@ def _scrape_url(url: str) -> tuple[str, str]:
 async def from_url_get(request: Request, current_user=Depends(get_current_user),
                        url: str = "", text: str = "", title: str = ""):
     uid = current_user["id"]
-    # Share target may send the URL in 'text' or 'url' param
-    target_url = url or text or ""
     error = None
-    page_title = ""
+    page_title = title or ""
     page_text = ""
+    target_url = url or ""
 
-    if target_url:
+    if text:
+        # Selected text shared directly — no scraping needed
+        page_text = text[:6000]
+        page_title = page_title or target_url or "Gedeelde tekst"
+    elif target_url:
         try:
             page_title, page_text = await asyncio.get_event_loop().run_in_executor(
                 None, lambda: _scrape_url(target_url)

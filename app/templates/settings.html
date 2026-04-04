@@ -207,22 +207,43 @@
     </section>
 
     <section class="card">
-      <h2 class="section-heading">Genereer vanuit URL</h2>
-      <p class="section-sub">Gebruik EventSnap op eender welke agenda-pagina.</p>
+      <h2 class="section-heading">Genereer vanuit een webpagina</h2>
+      <p class="section-sub">Wil je de inhoud van een pagina delen met EventSnap om een post te genereren?</p>
 
-      <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">Desktop — Bookmarklet</p>
-        <p style="font-size:0.82rem;color:#71717a;margin-bottom:0.75rem">Sleep de knop hieronder naar je bookmarksbalk. Klik erop op een agenda-pagina om EventSnap te openen met die URL.</p>
-        <a href="javascript:(function(){window.open('https://eventsnap.dreamlead.be/from-url?url='+encodeURIComponent(window.location.href),'_blank');})();"
+      <div style="margin-bottom:1.5rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">💻 Desktop</p>
+        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0.75rem 1.25rem;line-height:1.8">
+          <li>Sleep de knop hieronder naar je bookmarksbalk (éénmalig)</li>
+          <li>Ga naar een agenda- of sessiepagina</li>
+          <li><strong>Optie A:</strong> selecteer de tekst die je wil gebruiken, klik dan op de bookmark</li>
+          <li><strong>Optie B:</strong> selecteer niets — de volledige pagina wordt opgehaald via de URL</li>
+        </ol>
+        <a href="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
            style="display:inline-block;padding:0.4rem 0.9rem;background:#0a66c2;color:#fff;border-radius:6px;font-size:0.85rem;text-decoration:none;cursor:grab"
            onclick="alert('Sleep deze knop naar je bookmarksbalk — klik er niet op!');return false;">
           📋 EventSnap
         </a>
+        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">Geen bookmarksbalk? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
+      </div>
+
+      <div style="margin-bottom:1.5rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">📱 Android</p>
+        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0.75rem 1.25rem;line-height:1.8">
+          <li>Open deze pagina in Chrome → tik de drie puntjes → <strong>App installeren</strong> (éénmalig)</li>
+          <li>Ga naar een agenda-pagina in je browser</li>
+          <li><strong>Optie A:</strong> selecteer tekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li><strong>Optie B:</strong> tik de drie puntjes → <strong>Delen</strong> → kies <strong>EventSnap</strong> (stuurt de URL)</li>
+        </ol>
       </div>
 
       <div>
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">Mobiel — Installeer als app</p>
-        <p style="font-size:0.82rem;color:#71717a">Voeg EventSnap toe aan je startscherm via je browser (iOS: Delen → Zet op beginscherm / Android: Menu → App installeren). Daarna verschijnt EventSnap in het <strong>Delen</strong> menu van je telefoon.</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">🍎 iOS (Safari)</p>
+        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
+          <li>Open deze pagina in Safari → tik het Delen-icoontje → <strong>Zet op beginscherm</strong> (éénmalig)</li>
+          <li>Ga naar een agenda-pagina</li>
+          <li><strong>Optie A:</strong> selecteer tekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li><strong>Optie B:</strong> tik het Delen-icoontje → kies <strong>EventSnap</strong> (stuurt de URL)</li>
+        </ol>
       </div>
     </section>
 
