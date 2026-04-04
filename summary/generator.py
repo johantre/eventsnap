@@ -184,7 +184,7 @@ def _generate_openai(user_message: str, system_prompt: str) -> str:
     from openai import OpenAI
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},

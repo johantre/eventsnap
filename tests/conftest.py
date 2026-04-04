@@ -5,6 +5,7 @@ Elke test krijgt een verse in-memory SQLite DB zodat tests
 elkaar nooit beïnvloeden en de echte drafts.db onaangeroerd blijft.
 """
 
+import os
 import re
 import pytest
 import sqlite3
@@ -12,6 +13,10 @@ from unittest.mock import patch, MagicMock
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+
+# Provide a valid Fernet key for tests (never used with real data)
+os.environ.setdefault("ENCRYPTION_KEY", "2maX5VPFRquojlDM7UcogJV3CJpOhMgwnpxrWSIo9Mw=")
+os.environ.setdefault("SECRET_KEY", "testsecretkey")
 
 import app.server  # noqa: F401 — ensures module is imported before mock_mail patches it
 

@@ -172,7 +172,7 @@
             <input type="radio" name="active_llm" value="{{ llm.id }}"
               {% if active_llm == llm.id %}checked{% elif not active_llm and loop.first %}checked{% endif %}>
             <span class="llm-dot" style="background:{{ llm.color }}"></span>
-            <span class="llm-label">{{ llm.label }}</span><span class="llm-sublabel">{{ llm.sublabel }}</span>
+            <span class="llm-label">{{ llm.label }}</span>
             <span class="cost-line">
               {% if llm.cost == 'free' %}✅{% elif llm.cost == 'coin' %}🪙{% elif llm.cost == 'card' %}💳{% endif %}
               {{ llm.cost_tip | replace('·', '<br>') | safe }}
