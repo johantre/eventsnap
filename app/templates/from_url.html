@@ -61,6 +61,9 @@
         <p id="paste-error" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none">
           Geen toegang tot klembord — plak de tekst manueel hieronder.
         </p>
+        <p id="paste-empty" style="color:#f59e0b;font-size:0.82rem;margin-top:0.5rem;display:none">
+          Klembord is leeg of de pagina blokkeert kopiëren. Probeer de <strong>URL-optie</strong> hieronder.
+        </p>
       </div>
 
       <!-- Editable text area (shown after paste, or as manual fallback) -->
@@ -169,7 +172,7 @@
         if (text.trim()) {
           showGenerateSection(text.trim());
         } else {
-          showManualArea();
+          document.getElementById('paste-empty').style.display = '';
         }
       } catch (e) {
         // No clipboard access — show manual textarea
