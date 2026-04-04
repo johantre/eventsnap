@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Genereer vanuit URL – EventSnap</title>
+  <title>Genereer vanuit pagina – EventSnap</title>
   <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
@@ -17,7 +17,7 @@
       <div class="header-top">
         <div>
           <a href="/" class="back">← Terug</a>
-          <h1>Genereer vanuit URL</h1>
+          <h1>Genereer vanuit pagina</h1>
         </div>
         <div class="nav-wrap">
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
@@ -35,7 +35,7 @@
           </nav>
         </div>
       </div>
-      <p>Plak een agenda-URL en genereer een LinkedIn post.</p>
+      <p>Kopieer sessie-inhoud en genereer een LinkedIn post.</p>
     </div>
   </header>
 
@@ -46,38 +46,73 @@
     <div class="toast toast-error">{{ error }}</div>
     {% endif %}
 
-    {% if not page_text %}
-    <!-- Step 1: enter URL -->
-    <section class="card">
-      <h2 class="section-heading">Agenda URL</h2>
+    <!-- Input section: paste or URL -->
+    <section class="card" id="input-section" {% if page_text %}style="display:none"{% endif %}>
+
+      <!-- Primary: paste button -->
+      <div style="text-align:center;padding:1.5rem 0 1rem">
+        <p style="font-size:0.9rem;color:#52525b;margin-bottom:1rem">
+          Kopieer tekst van een sessie-pagina (Ctrl+C / lang indrukken → Kopiëren)<br>
+          en klik daarna op de knop:
+        </p>
+        <button type="button" class="btn-primary" id="paste-btn" onclick="pasteFromClipboard()" style="font-size:1.1rem;padding:0.75rem 2rem">
+          📋 Plakken
+        </button>
+        <p id="paste-error" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none">
+          Geen toegang tot klembord — plak de tekst manueel hieronder.
+        </p>
+      </div>
+
+      <!-- Editable text area (shown after paste, or as manual fallback) -->
+      <div id="manual-area" style="display:none;margin-top:0.5rem">
+        <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">
+          Tekst (bewerkbaar)
+        </label>
+        <textarea id="pasted-text" rows="8"
+          placeholder="Plak hier de sessietekst..."
+          style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.9rem;resize:vertical"></textarea>
+        <button type="button" class="btn-primary" onclick="useText()" style="margin-top:0.75rem">
+          Gebruik deze tekst →
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0">
+        <hr style="flex:1;border:none;border-top:1px solid #e4e4e7">
+        <span style="font-size:0.8rem;color:#a1a1aa">of via URL</span>
+        <hr style="flex:1;border:none;border-top:1px solid #e4e4e7">
+      </div>
+
+      <!-- Fallback: URL -->
       <form method="get" action="/from-url">
         <input type="url" name="url" value="{{ target_url }}"
                placeholder="https://sessionize.com/mijn-event/"
-               style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:1rem;margin-bottom:1rem"
-               required autofocus>
-        <button type="submit" class="btn-primary">Ophalen</button>
+               style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem;margin-bottom:0.75rem">
+        <button type="submit" class="btn-primary" style="background:#71717a">Ophalen via URL</button>
       </form>
     </section>
-    {% else %}
-    <!-- Step 2: preview + generate -->
-    <section class="card" style="margin-bottom:1rem">
-      <h2 class="section-heading">{{ page_title or target_url }}</h2>
-      <p style="font-size:0.8rem;color:#71717a;margin-bottom:0.5rem">{{ target_url }}</p>
-      <details>
-        <summary style="font-size:0.85rem;color:#52525b;cursor:pointer;margin-bottom:0.5rem">Opgehaalde tekst bekijken</summary>
-        <pre style="font-size:0.75rem;color:#71717a;white-space:pre-wrap;max-height:200px;overflow-y:auto;background:#f9f9f9;padding:0.75rem;border-radius:6px">{{ page_text }}</pre>
-      </details>
-    </section>
 
-    <section class="card">
+    <!-- Generate section: shown after text is ready -->
+    <section class="card" id="gen-section" {% if not page_text %}style="display:none"{% endif %}>
+      {% if page_title or target_url %}
+      <p style="font-size:0.82rem;color:#71717a;margin-bottom:0.75rem">{{ page_title or target_url }}</p>
+      {% endif %}
+
       <form method="post" action="/from-url" id="gen-form">
         {{ csrf_field(request) | safe }}
-        <input type="hidden" name="target_url" value="{{ target_url }}">
-        <input type="hidden" name="page_title" value="{{ page_title }}">
-        <input type="hidden" name="page_text" value="{{ page_text }}">
+        <input type="hidden" name="target_url" value="{{ target_url }}" id="f-url">
+        <input type="hidden" name="page_title" value="{{ page_title }}" id="f-title">
+        <input type="hidden" name="page_text" value="{{ page_text }}" id="f-text">
+
+        <div style="margin-bottom:0.75rem">
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Inhoud (bewerkbaar)</label>
+          <textarea id="preview-text" rows="8"
+            style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.85rem;color:#52525b;resize:vertical"
+            oninput="document.getElementById('f-text').value=this.value">{{ page_text }}</textarea>
+        </div>
 
         {% if prompts %}
-        <div style="margin-bottom:1rem">
+        <div style="margin-bottom:0.75rem">
           <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Stijl</label>
           <select name="prompt_id" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem">
             <option value="">— Geen stijl —</option>
@@ -88,19 +123,18 @@
         </div>
         {% endif %}
 
-        <div style="margin-bottom:1rem">
+        <div style="margin-bottom:0.75rem">
           <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Aanvullende instructies (optioneel)</label>
-          <textarea name="user_prompt" rows="3" placeholder="Bv. focus op de keynote sprekers..."
+          <textarea name="user_prompt" rows="2" placeholder="Bv. focus op de keynote sprekers..."
             style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem;resize:vertical"></textarea>
         </div>
 
         <div class="actions">
           <button type="submit" class="btn-primary" onclick="showLoading()">Genereer post</button>
-          <a href="/from-url" class="btn-delete" style="text-decoration:none;display:inline-block">Andere URL</a>
+          <button type="button" onclick="resetPage()" style="background:none;border:none;color:#71717a;cursor:pointer;font-size:0.9rem">← Opnieuw beginnen</button>
         </div>
       </form>
     </section>
-    {% endif %}
   </main>
 
   <div id="loading-overlay" style="display:none">
@@ -113,9 +147,47 @@
   <script>
     function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
     document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
+
     function showLoading() {
       document.getElementById('loading-overlay').style.display = 'flex';
       document.querySelectorAll('button, textarea, input, select').forEach(el => el.disabled = true);
+    }
+
+    function resetPage() {
+      document.getElementById('input-section').style.display = '';
+      document.getElementById('gen-section').style.display = 'none';
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text.trim()) {
+          showGenerateSection(text.trim());
+        } else {
+          showManualArea();
+        }
+      } catch (e) {
+        // No clipboard access — show manual textarea
+        showManualArea();
+        document.getElementById('paste-error').style.display = '';
+      }
+    }
+
+    function showManualArea() {
+      document.getElementById('manual-area').style.display = '';
+      document.getElementById('pasted-text').focus();
+    }
+
+    function useText() {
+      const text = document.getElementById('pasted-text').value.trim();
+      if (text) showGenerateSection(text);
+    }
+
+    function showGenerateSection(text) {
+      document.getElementById('input-section').style.display = 'none';
+      document.getElementById('gen-section').style.display = '';
+      document.getElementById('f-text').value = text;
+      document.getElementById('preview-text').value = text;
     }
   </script>
 </body>
