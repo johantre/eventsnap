@@ -1,0 +1,61 @@
+name: Test & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt -q
+
+      - name: Run test suite
+        # Secrets are needed because app/db.py imports cryptography at module level
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+        run: .venv/bin/python -m pytest tests/ -q
+
+  deploy:
+    name: Deploy to host
+    runs-on: self-hosted
+    needs: test
+    # Only deploy on push to main, not on pull requests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write secrets to /etc/eventsnap/env
+        run: |
+          sudo mkdir -p /etc/eventsnap
+          sudo tee /etc/eventsnap/env > /dev/null <<EOF
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}
+          EOF
+          sudo chmod 600 /etc/eventsnap/env
+          sudo chown root:root /etc/eventsnap/env
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt -q
+
+      - name: Restart service
+        run: |
+          sudo systemctl daemon-reload
+          sudo systemctl restart eventsnap
+          sleep 3
+          sudo systemctl is-active eventsnap
