@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>Instellingen – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Instellingen</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Configureer je event providers en taalmodel.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+  <main>
+    {% if request.query_params.get('saved') %}
+    <div class="toast">Opgeslagen ✓</div>
+    {% endif %}
+    {% if request.query_params.get('test_id') %}
+      {% if request.query_params.get('test_ok') == '1' %}
+    <div class="toast">{{ request.query_params.get('test_id') }}: {{ request.query_params.get('test_msg') }} ✓</div>
+      {% else %}
+    <div class="toast toast-error">{{ request.query_params.get('test_id') }}: {{ request.query_params.get('test_msg') }}</div>
+      {% endif %}
+    {% endif %}
+
+    <section class="card">
+      <h2 class="section-heading">Beveiliging</h2>
+      <p class="section-sub">Bescherm je account met twee-staps verificatie (2FA).</p>
+      <a href="/settings/2fa" class="btn-copy" style="display:inline-block;margin-top:0.75rem;text-decoration:none">
+        Twee-staps verificatie beheren →
+      </a>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/settings">
+        {{ csrf_field(request) | safe }}
+        <h2 class="section-heading">System prompt</h2>
+        <p class="section-sub">De basisinstructies die meegegeven worden aan het taalmodel bij elke generatie.</p>
+        <textarea name="system_prompt" rows="16" style="font-size:0.82rem; line-height:1.5; font-family: monospace">{{ system_prompt or default_system_prompt }}</textarea>
+        <div style="margin-top:1rem">
+          <button type="submit" class="btn-primary btn-save" disabled>Opslaan</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/settings">
+        {{ csrf_field(request) | safe }}
+        <h2 class="section-heading">Event providers</h2>
+        <p class="section-sub">Verbind je ticketplatforms om je events op te halen.</p>
+
+        <div class="provider-block">
+          <div class="provider-header">
+            <span class="provider-name">Collective / Wintercircus</span>
+            {% if collective.ok %}<span class="llm-badge">✓ geconfigureerd</span>
+            {% else %}<span class="llm-badge llm-badge-missing">niet geconfigureerd</span>{% endif %}
+          </div>
+          <div class="prompt-field">
+            <label class="url-label-row">
+              URL
+              <button type="button" class="btn-reset-url"
+                onclick="resetCollectiveUrl()"
+                title="Reset naar default">↺ Reset</button>
+            </label>
+            <input type="text" id="collective_url" name="collective_url"
+              value="{{ collective.url }}"
+              placeholder="https://wintercircus.odoo.com">
+          </div>
+
+          <div id="reset-modal" class="modal-backdrop" style="display:none" onclick="closeResetModal(event)">
+            <div class="modal-box">
+              <p class="modal-title">URL resetten naar default?</p>
+              <p class="modal-body">De waarde wordt teruggezet naar:<br>
+                <code id="reset-url-display"></code>
+              </p>
+              <div class="modal-actions">
+                <button type="button" class="btn-primary" onclick="confirmReset()">Reset</button>
+                <button type="button" class="btn-copy" onclick="document.getElementById('reset-modal').style.display='none'">Annuleer</button>
+              </div>
+            </div>
+          </div>
+          <div class="prompt-field">
+            <label>E-mail</label>
+            <input type="text" name="collective_email" value="{{ collective.email }}"
+              placeholder="jouw@email.be" autocomplete="off" readonly
+              onfocus="this.removeAttribute('readonly')">
+          </div>
+          <div class="prompt-field">
+            <label>Wachtwoord</label>
+            <input type="password" name="collective_password" autocomplete="new-password" readonly
+              onfocus="this.removeAttribute('readonly')"
+              placeholder="{% if collective.password_set %}Laat leeg om huidig wachtwoord te bewaren{% else %}Wachtwoord invoeren{% endif %}">
+          </div>
+        </div>
+
+        <div class="provider-block">
+          <div class="provider-header">
+            <span class="provider-name">Eventbrite</span><span class="llm-sublabel">Private token</span>
+          </div>
+          <div class="llm-key-row">
+            <input type="password" name="eventbrite_token" autocomplete="off"
+              placeholder="{% if eventbrite_ok %}Laat leeg om huidige token te bewaren{% else %}Plak hier je Private token{% endif %}">
+            <div class="llm-meta">
+              <span class="llm-badge {% if not eventbrite_ok %}llm-badge-missing{% endif %}">
+                {% if eventbrite_ok %}✓ geconfigureerd{% else %}niet geconfigureerd{% endif %}
+              </span>
+              <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+            </div>
+          </div>
+          <p class="provider-hint">Gebruik de <strong>Private token</strong> — niet de API key, Public token of Client secret.</p>
+        </div>
+
+        <div class="provider-block">
+          <div class="provider-header">
+            <span class="provider-name">Meetup</span><span class="llm-sublabel">OAuth bearer token</span>
+          </div>
+          <div class="llm-key-row">
+            <input type="password" name="meetup_token" autocomplete="off"
+              placeholder="{% if meetup_ok %}Laat leeg om huidige token te bewaren{% else %}Plak hier je OAuth bearer token{% endif %}">
+            <div class="llm-meta">
+              <span class="llm-badge {% if not meetup_ok %}llm-badge-missing{% endif %}">
+                {% if meetup_ok %}✓ geconfigureerd{% else %}niet geconfigureerd{% endif %}
+              </span>
+              <a href="https://secure.meetup.com/oauth2/authorize" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.25rem">
+          <button type="submit" class="btn-primary btn-save" disabled>Opslaan</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/settings">
+        {{ csrf_field(request) | safe }}
+        <h2 class="section-heading">Taalmodel (LLM)</h2>
+        <p class="section-sub">Kies welk AI-model je posts genereert.</p>
+
+        {% for llm in llms %}
+        <label class="llm-option {% if llm.has_key %}llm-available{% endif %}" id="llm-option-{{ llm.id }}">
+          <div class="llm-radio-row">
+            <input type="radio" name="active_llm" value="{{ llm.id }}"
+              {% if active_llm == llm.id %}checked{% elif not active_llm and loop.first %}checked{% endif %}>
+            <span class="llm-dot" style="background:{{ llm.color }}"></span>
+            <span class="llm-label">{{ llm.label }}</span><span class="llm-sublabel">{{ llm.sublabel }}</span>
+            <span class="cost-line">
+              {% if llm.cost == 'free' %}✅{% elif llm.cost == 'coin' %}🪙{% elif llm.cost == 'card' %}💳{% endif %}
+              {{ llm.cost_tip | replace('·', '<br>') | safe }}
+            </span>
+          </div>
+          <div class="llm-key-row">
+            <div class="key-input-wrap" id="wrap-{{ llm.id }}">
+              <input type="password" id="key-{{ llm.id }}"
+                placeholder="{% if llm.has_key %}Nieuwe key plakken om te vervangen{% else %}Plak hier je API key{% endif %}"
+                autocomplete="off" data-llm="{{ llm.id }}">
+              <span class="key-status" id="status-{{ llm.id }}"></span>
+            </div>
+            <div class="llm-meta">
+              <span class="llm-badge llm-key-badge" id="badge-{{ llm.id }}">
+                {% if llm.has_key %}✓ geconfigureerd{% else %}geen key{% endif %}
+              </span>
+              <a href="{{ llm.url }}" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+            </div>
+          </div>
+          <p class="key-msg" id="msg-{{ llm.id }}"></p>
+        </label>
+        {% endfor %}
+
+        <div style="margin-top:1.25rem">
+          <button type="submit" class="btn-primary btn-save" disabled>Actief model opslaan</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script>
+    function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
+    document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
+
+    // Inline LLM key validation
+    async function validateKey(llmId, key) {
+      const wrap = document.getElementById('wrap-' + llmId);
+      const statusEl = document.getElementById('status-' + llmId);
+      const msgEl = document.getElementById('msg-' + llmId);
+      const badgeEl = document.getElementById('badge-' + llmId);
+
+      wrap.classList.remove('key-valid', 'key-invalid');
+      wrap.classList.add('key-testing');
+      statusEl.textContent = '⏳';
+      msgEl.textContent = '';
+
+      try {
+        const resp = await fetch(`/settings/key/${llmId}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({key})
+        });
+        const data = await resp.json();
+        wrap.classList.remove('key-testing');
+
+        if (data.ok) {
+          wrap.classList.add('key-valid');
+          statusEl.textContent = '✓';
+          msgEl.textContent = 'Opgeslagen ✓';
+          msgEl.className = 'key-msg key-msg-ok';
+          badgeEl.textContent = '✓ geconfigureerd';
+          badgeEl.classList.remove('llm-badge-missing');
+        } else {
+          wrap.classList.add('key-invalid');
+          statusEl.textContent = '✗';
+          msgEl.textContent = data.msg;
+          msgEl.className = 'key-msg key-msg-err';
+        }
+      } catch(e) {
+        wrap.classList.remove('key-testing');
+        wrap.classList.add('key-invalid');
+        statusEl.textContent = '✗';
+        msgEl.textContent = 'Verbinding mislukt';
+        msgEl.className = 'key-msg key-msg-err';
+      }
+    }
+
+    document.querySelectorAll('input[data-llm]').forEach(input => {
+      let debounceTimer;
+
+      function resetState() {
+        const wrap = document.getElementById('wrap-' + input.dataset.llm);
+        wrap.classList.remove('key-valid', 'key-invalid', 'key-testing');
+        document.getElementById('status-' + input.dataset.llm).textContent = '';
+        document.getElementById('msg-' + input.dataset.llm).textContent = '';
+      }
+
+      // Validate immediately on paste
+      input.addEventListener('paste', () => {
+        setTimeout(() => {
+          if (input.value.trim()) validateKey(input.dataset.llm, input.value.trim());
+        }, 100);
+      });
+
+      // Validate with debounce on typing (1.2s after last keystroke)
+      input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        if (!input.value.trim()) { resetState(); return; }
+        resetState();
+        debounceTimer = setTimeout(() => {
+          if (input.value.trim()) validateKey(input.dataset.llm, input.value.trim());
+        }, 1200);
+      });
+
+      // Validate on blur if there's a value
+      input.addEventListener('blur', () => {
+        clearTimeout(debounceTimer);
+        if (input.value.trim()) validateKey(input.dataset.llm, input.value.trim());
+      });
+    });
+
+    // Dirty state: enable Save button only when form values changed
+    document.querySelectorAll('form[action="/settings"]').forEach(form => {
+      const saveBtn = form.querySelector('.btn-save');
+      if (!saveBtn) return;
+      const snapshot = () => new FormData(form);
+      let initial = [...new FormData(form).entries()].map(([k,v]) => k+'='+v).join('&');
+      form.addEventListener('input', () => {
+        const current = [...new FormData(form).entries()].map(([k,v]) => k+'='+v).join('&');
+        saveBtn.disabled = current === initial;
+      });
+      form.addEventListener('change', () => {
+        const current = [...new FormData(form).entries()].map(([k,v]) => k+'='+v).join('&');
+        saveBtn.disabled = current === initial;
+      });
+    });
+
+    const COLLECTIVE_DEFAULT_URL = 'https://wintercircus.odoo.com';
+
+    function resetCollectiveUrl() {
+      document.getElementById('reset-url-display').textContent = COLLECTIVE_DEFAULT_URL;
+      document.getElementById('reset-modal').style.display = 'flex';
+    }
+    function closeResetModal(e) {
+      if (e.target.id === 'reset-modal') {
+        document.getElementById('reset-modal').style.display = 'none';
+      }
+    }
+    function confirmReset() {
+      document.getElementById('collective_url').value = COLLECTIVE_DEFAULT_URL;
+      document.getElementById('reset-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

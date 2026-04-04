@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <title>Verificatie – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <h1 class="brand-title">EventSnap</h1>
+      </div>
+      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2 style="margin-bottom:0.5rem">Twee-staps verificatie</h2>
+      <p style="color:#71717a;font-size:0.875rem;margin-bottom:1.25rem">
+        Voer de 6-cijferige code in van je authenticator-app{% if email %} voor <strong style="color:#18181b">{{ email }}</strong>{% endif %}.
+      </p>
+
+      {% if error %}
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/login/2fa" style="display:flex;flex-direction:column;gap:0.875rem">
+        {{ csrf_field(request) | safe }}
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Verificatiecode</label>
+          <input type="text" name="code" required autofocus
+                 inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                 placeholder="000000" autocomplete="off"
+                 style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:1.5rem;letter-spacing:0.3em;text-align:center">
+        </div>
+        <button type="submit" class="btn-primary">Verifiëren</button>
+      </form>
+
+      <p style="margin-top:1.25rem;font-size:0.85rem;text-align:center;color:#71717a">
+        <a href="/login" style="color:#0a66c2">← Terug naar inloggen</a>
+      </p>
+    </div>
+  </main>
+  <script>
+    document.querySelector('input[name="code"]').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); this.form.submit(); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>Fout – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Er ging iets mis</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h2 class="section-heading" style="color:#ef4444; border-color:#ef4444">Fout {{ status }}</h2>
+      <p style="margin-top:1rem; font-size:0.9rem; color:#52525b; line-height:1.6">{{ message }}</p>
+      <div style="margin-top:1.5rem; display:flex; gap:0.75rem">
+        <a href="/" class="btn-primary" style="text-decoration:none">← Terug naar home</a>
+        <a href="/settings" class="btn-copy" style="text-decoration:none">Instellingen controleren</a>
+      </div>
+    </section>
+  </main>
+  <script>
+    function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
+    document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
+  </script>
+</body>
+</html>

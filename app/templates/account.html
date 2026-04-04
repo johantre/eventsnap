@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>Account – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Account</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Beheer je accountgegevens.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+  <main>
+
+    {% if request.query_params.get('pw_saved') %}
+    <div class="toast" style="position:static">Wachtwoord succesvol gewijzigd.</div>
+    {% endif %}
+    {% if request.query_params.get('email_saved') %}
+    <div class="toast" style="position:static">E-mailadres succesvol gewijzigd.</div>
+    {% endif %}
+
+    <!-- Wachtwoord wijzigen -->
+    <div class="card">
+      <h2 class="section-heading">Wachtwoord wijzigen</h2>
+      {% if pw_error %}
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ pw_error }}</div>
+      {% endif %}
+      <form method="post" action="/account/change-password" style="display:flex;flex-direction:column;gap:0.875rem;margin-top:1rem">
+        {{ csrf_field(request) | safe }}
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Huidig wachtwoord</label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-cur" name="current_password" required autocomplete="current-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-cur', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw wachtwoord <span style="font-weight:400;color:#71717a">(min. 8 tekens)</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-new1" name="new_password" required autocomplete="new-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new1', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw wachtwoord herhalen</label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-new2" name="new_password2" required autocomplete="new-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new2', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="align-self:flex-start">Wachtwoord wijzigen</button>
+      </form>
+    </div>
+
+    <!-- E-mail wijzigen -->
+    <div class="card">
+      <h2 class="section-heading">E-mailadres wijzigen</h2>
+      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem">Huidig: <strong>{{ current_user.email }}</strong></p>
+      {% if email_error %}
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem;margin-top:0.75rem">{{ email_error }}</div>
+      {% endif %}
+      <form method="post" action="/account/change-email" style="display:flex;flex-direction:column;gap:0.875rem;margin-top:1rem">
+        {{ csrf_field(request) | safe }}
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw e-mailadres</label>
+          <input type="email" name="new_email" required autocomplete="email"
+                 style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+        </div>
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Huidig wachtwoord</label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-email" name="current_password" required autocomplete="current-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-email', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="align-self:flex-start">E-mail wijzigen</button>
+      </form>
+    </div>
+
+    <!-- Account verwijderen -->
+    <div class="card" style="border:1.5px solid #fca5a5">
+      <h2 class="section-heading" style="border-color:#ef4444;color:#ef4444">Account verwijderen</h2>
+      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem;margin-bottom:1rem">
+        Dit verwijdert je account en alle bijbehorende data (drafts, stijlen, instellingen) permanent.
+      </p>
+      {% if delete_error %}
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ delete_error }}</div>
+      {% endif %}
+      <form method="post" action="/account/delete" style="display:flex;flex-direction:column;gap:0.875rem"
+            onsubmit="return confirm('Weet je zeker dat je je account wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')">
+        {{ csrf_field(request) | safe }}
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Bevestig met je wachtwoord</label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-del" name="current_password" required autocomplete="current-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-del', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <button type="submit" style="align-self:flex-start;background:#ef4444;color:white;border:none;border-radius:8px;padding:0.65rem 1.25rem;font-size:0.9rem;font-weight:600;cursor:pointer">
+          Account permanent verwijderen
+        </button>
+      </form>
+    </div>
+
+  </main>
+  <script>
+    function toggleMenu() {
+      document.getElementById('nav-menu').classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      const wrap = document.querySelector('.nav-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('nav-menu').classList.remove('open');
+      }
+    });
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.style.opacity = input.type === 'text' ? '1' : '0.5';
+    }
+    document.querySelectorAll('.pw-toggle').forEach(btn => { btn.style.opacity = '0.5'; });
+  </script>
+</body>
+</html>

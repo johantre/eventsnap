@@ -1,0 +1,29 @@
+# --- Gevoelige data — NOOIT in git ---
+.env
+*.db
+*.db.bak
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# --- Tests & tooling ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- IDE ---
+.idea/
+.vscode/
+
+# --- Claude Code ---
+.claude/
+
+# --- Cloudflare installer ---
+cloudflare/
+
+# --- OS ---
+.DS_Store
+Thumbs.db

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <title>E-mail verificatie – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <h1 class="brand-title">EventSnap</h1>
+      </div>
+      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      {% if invalid %}
+      <h2 style="margin-bottom:1rem">Ongeldige verificatielink</h2>
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">
+        Deze verificatielink is ongeldig of verlopen.
+      </div>
+      <p style="font-size:0.85rem;color:#71717a;margin-bottom:1.25rem">
+        Log in en vraag via de banner een nieuwe verificatiemail aan.
+      </p>
+      <a href="/login" class="btn-primary" style="display:inline-block;text-decoration:none">Naar inloggen</a>
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>

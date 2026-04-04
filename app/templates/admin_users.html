@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>Gebruikers – Admin – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Admin — Gebruikers</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            <a href="/admin/users">Admin</a>
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Beheer alle geregistreerde gebruikers.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+
+  <main>
+    {% if request.query_params.get('saved') %}
+    <div class="toast" style="position:static">Opgeslagen ✓</div>
+    {% endif %}
+    {% if request.query_params.get('error') == 'self' %}
+    <div class="toast toast-error" style="position:static">Je kan je eigen account niet verwijderen via admin.</div>
+    {% endif %}
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
+      <div class="card" style="flex:1;min-width:130px;padding:1rem 1.25rem">
+        <div style="font-size:0.75rem;color:#71717a;margin-bottom:0.25rem">Gebruikers</div>
+        <div style="font-size:1.75rem;font-weight:700;color:#18181b">{{ kpis.total_users }}</div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:1rem 1.25rem">
+        <div style="font-size:0.75rem;color:#71717a;margin-bottom:0.25rem">Posts gegenereerd</div>
+        <div style="font-size:1.75rem;font-weight:700;color:#18181b">{{ kpis.total_posts }}</div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:1rem 1.25rem">
+        <div style="font-size:0.75rem;color:#71717a;margin-bottom:0.25rem">Gem. generatietijd</div>
+        <div style="font-size:1.75rem;font-weight:700;color:#18181b">
+          {% if kpis.avg_ms %}{{ (kpis.avg_ms / 1000) | round(1) }} s{% else %}–{% endif %}
+        </div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:1rem 1.25rem">
+        <div style="font-size:0.75rem;color:#71717a;margin-bottom:0.25rem">Populairste model</div>
+        <div style="font-size:1.75rem;font-weight:700;color:#18181b">{{ kpis.top_llm or '–' }}</div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:center">
+        <a href="/admin/stats" style="font-size:0.9rem;color:#0a66c2;font-weight:600">Statistieken →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-heading">Gebruikers ({{ users|length }})</h2>
+
+      <table style="width:100%;border-collapse:collapse;margin-top:1rem;font-size:0.875rem">
+        <thead>
+          <tr style="border-bottom:2px solid #e4e4e7;text-align:left">
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">E-mail</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">Aangemaakt</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:center">Geverif.</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:center">2FA</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:center">Admin</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:center">Drafts</th>
+            <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr style="border-bottom:1px solid #f4f4f5">
+            <td style="padding:0.6rem 0.75rem">
+              {{ u.email }}
+              {% if u.id == current_user.id %}<span style="font-size:0.75rem;color:#a1a1aa"> (jij)</span>{% endif %}
+            </td>
+            <td style="padding:0.6rem 0.75rem;color:#71717a;white-space:nowrap">{{ u.created_at[:10] }}</td>
+            <td style="padding:0.6rem 0.75rem;text-align:center">
+              {% if u.email_verified %}
+              <span style="color:#22c55e">✓</span>
+              {% else %}
+              <form method="post" action="/admin/users/{{ u.id }}/verify" style="display:inline">
+                {{ csrf_field(request) | safe }}
+                <button type="submit" style="background:none;border:none;color:#f59e0b;cursor:pointer;font-size:0.85rem;padding:0" title="Klik om te verifiëren">✗</button>
+              </form>
+              {% endif %}
+            </td>
+            <td style="padding:0.6rem 0.75rem;text-align:center">
+              {% if u.totp_enabled %}<span style="color:#22c55e">✓</span>{% else %}<span style="color:#d4d4d8">–</span>{% endif %}
+            </td>
+            <td style="padding:0.6rem 0.75rem;text-align:center">
+              {% if u.is_admin %}<span style="color:#0a66c2">✓</span>{% else %}<span style="color:#d4d4d8">–</span>{% endif %}
+            </td>
+            <td style="padding:0.6rem 0.75rem;text-align:center;color:#71717a">{{ u.draft_count }}</td>
+            <td style="padding:0.6rem 0.75rem;text-align:right">
+              {% if u.id != current_user.id %}
+              <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline"
+                    onsubmit="return confirm('Gebruiker {{ u.email }} verwijderen?')">
+                {{ csrf_field(request) | safe }}
+                <button type="submit" class="btn-delete">Verwijderen</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
+    document.addEventListener('click', e => {
+      const wrap = document.querySelector('.nav-wrap');
+      if (wrap && !wrap.contains(e.target)) document.getElementById('nav-menu').classList.remove('open');
+    });
+  </script>
+</body>
+</html>

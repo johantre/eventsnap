@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <title>Inloggen – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <h1 class="brand-title">EventSnap</h1>
+      </div>
+      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2 style="margin-bottom:1.25rem">Inloggen</h2>
+
+      {% if request.query_params.get('reset') %}
+      <div class="toast" style="position:static;margin-bottom:1rem">Wachtwoord opgeslagen — je kan nu inloggen.</div>
+      {% endif %}
+      {% if request.query_params.get('deleted') %}
+      <div class="toast" style="position:static;margin-bottom:1rem">Je account is verwijderd.</div>
+      {% endif %}
+      {% if error %}
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/login" style="display:flex;flex-direction:column;gap:0.875rem">
+        {{ csrf_field(request) | safe }}
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">E-mailadres</label>
+          <input type="email" name="email" required autocomplete="email"
+                 style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+        </div>
+        <div>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Wachtwoord</label>
+          <div class="pw-wrap">
+            <input type="password" id="pw-login" name="password" required autocomplete="current-password"
+                   style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-login', this)" aria-label="Toon wachtwoord">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:0.25rem">Inloggen</button>
+      </form>
+
+      <p style="margin-top:0.75rem;font-size:0.85rem;text-align:center">
+        <a href="/forgot-password" style="color:#71717a">Wachtwoord vergeten?</a>
+      </p>
+      <p style="margin-top:0.5rem;font-size:0.85rem;text-align:center;color:#71717a">
+        Nog geen account? <a href="/register" style="color:#0a66c2;font-weight:600">Registreren</a>
+      </p>
+    </div>
+  </main>
+  <script>
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.style.opacity = input.type === 'text' ? '1' : '0.5';
+    }
+    document.querySelectorAll('.pw-toggle').forEach(btn => { btn.style.opacity = '0.5'; });
+  </script>
+</body>
+</html>

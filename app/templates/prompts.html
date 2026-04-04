@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>Stijlen – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Stijlen beheren</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Sla je favoriete post-stijlen op om snel te hergebruiken.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+  <main>
+    <section class="card">
+      <div class="prompt-header">
+        <h2 id="form-title">Nieuwe stijl</h2>
+        <button type="button" class="btn-copy" id="btn-new" style="display:none" onclick="resetForm()">+ Nieuw</button>
+      </div>
+
+      <form method="post" id="prompt-form" action="/prompts">
+        {{ csrf_field(request) | safe }}
+        <input type="hidden" id="edit-id" name="_id" value="">
+        <div class="prompt-field">
+          <label for="title">Naam</label>
+          <input type="text" id="title" name="title" placeholder="bv. Grappige post" required>
+        </div>
+        <div class="prompt-field">
+          <label for="prompt_text">Instructies voor de LLM</label>
+          <textarea id="prompt_text" name="prompt_text" rows="6"
+            placeholder="bv. Schrijf een luchtige, grappige post met een knipoog..."></textarea>
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center">
+          <button type="submit" class="btn-primary">Opslaan</button>
+          <form method="post" id="delete-form" action="" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <button type="submit" class="btn-delete" id="btn-delete" style="display:none"
+              onclick="return confirm('Stijl verwijderen?')">Verwijder</button>
+          </form>
+        </div>
+      </form>
+    </section>
+
+    {% if prompts %}
+    <section class="card">
+      <h2>Opgeslagen stijlen</h2>
+      <div class="prompt-list">
+        {% for p in prompts %}
+        <button type="button" class="prompt-list-item" id="btn-{{ p.id }}"
+          data-id="{{ p.id }}"
+          data-title="{{ p.title }}"
+          data-text="{{ p.prompt_text | replace('"', '&quot;') }}"
+          onclick="loadPrompt(this)">
+          <span class="prompt-list-title">{{ p.title }}</span>
+          <span class="prompt-list-preview">{{ p.prompt_text[:80] }}{% if p.prompt_text|length > 80 %}…{% endif %}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <script>
+    function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
+    document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
+
+    function loadPrompt(btn) {
+      const id = btn.dataset.id;
+      document.getElementById('form-title').textContent = btn.dataset.title;
+      document.getElementById('title').value = btn.dataset.title;
+      document.getElementById('prompt_text').value = btn.dataset.text;
+      document.getElementById('edit-id').value = id;
+      document.getElementById('prompt-form').action = '/prompts/' + id;
+      document.getElementById('delete-form').action = '/prompts/' + id + '/delete';
+      document.getElementById('btn-delete').style.display = '';
+      document.getElementById('btn-new').style.display = '';
+
+      // Highlight selected
+      document.querySelectorAll('.prompt-list-item').forEach(b => b.classList.remove('prompt-list-item--active'));
+      btn.classList.add('prompt-list-item--active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('form-title').textContent = 'Nieuwe stijl';
+      document.getElementById('title').value = '';
+      document.getElementById('prompt_text').value = '';
+      document.getElementById('edit-id').value = '';
+      document.getElementById('prompt-form').action = '/prompts';
+      document.getElementById('btn-delete').style.display = 'none';
+      document.getElementById('btn-new').style.display = 'none';
+      document.querySelectorAll('.prompt-list-item').forEach(b => b.classList.remove('prompt-list-item--active'));
+    }
+  </script>
+</body>
+</html>

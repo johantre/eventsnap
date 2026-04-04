@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <title>EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <meta property="og:title" content="EventSnap">
+  <meta property="og:description" content="Genereer een LinkedIn post voor een event dat je gaat bijwonen.">
+  <meta property="og:url" content="https://eventsnap.dreamlead.be">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://eventsnap.dreamlead.be/static/og-image.png">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <h1 class="brand-title">EventSnap</h1>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+  <main>
+    {% if request.query_params.get('verified') %}
+    <div class="toast" style="position:static">E-mailadres bevestigd ✓</div>
+    {% endif %}
+    {% if request.query_params.get('resent') %}
+    <div class="toast" style="position:static">Verificatiemail opnieuw verstuurd.</div>
+    {% endif %}
+    {% if request.query_params.get('error') %}
+    <div class="toast toast-error">Fout: {{ request.query_params.get('error') }}</div>
+    {% endif %}
+    {% for err in provider_errors %}
+    <div class="toast toast-error">Provider fout — {{ err }}</div>
+    {% endfor %}
+    <section class="card">
+      <h2>Jouw tickets</h2>
+      <form method="post" action="/generate">
+        {{ csrf_field(request) | safe }}
+        <div class="filter-row">
+          <div class="filter-group">
+            <button type="button" class="filter-tab active" data-filter="upcoming">Komend</button>
+            <button type="button" class="filter-tab" data-filter="past">Voorbij</button>
+          </div>
+          {% if active_providers | length > 1 %}
+          <div class="filter-group filter-group--right">
+            {% for p in active_providers %}
+            <button type="button" class="filter-tab-provider active ticket-provider--{{ p }}" data-provider="{{ p }}">{{ p }}</button>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="ticket-list" id="ticket-list">
+          {% for ticket in tickets %}
+          <label class="ticket-item" data-date="{{ ticket.event_date }}" data-provider="{{ ticket.provider }}">
+            <input type="radio" name="ticket_key" value="{{ ticket.provider }}:{{ ticket.event_id }}" required>
+            <div class="ticket-info">
+              <span class="ticket-title">{{ ticket.event_title }}</span>
+              {% if ticket.event_date %}<span class="ticket-date">{{ ticket.event_date }}</span>{% endif %}
+            </div>
+            <span class="ticket-provider ticket-provider--{{ ticket.provider }}">{{ ticket.provider }}</span>
+          </label>
+          {% endfor %}
+          {% if not tickets %}
+          <p class="empty-state">Geen tickets gevonden. <a href="/settings">Controleer je providers</a>.</p>
+          {% endif %}
+        </div>
+        <p class="empty-state" id="no-results" style="display:none">Geen tickets in deze categorie.</p>
+
+        <div class="prompt-field">
+          <h2>Stijl</h2>
+          {% for p in prompts %}
+          <label class="prompt-option">
+            <input type="radio" name="prompt_id" value="{{ p.id }}"
+              {% if loop.first %}checked{% endif %}>
+            <span>{{ p.title }}</span>
+          </label>
+          {% endfor %}
+          <label class="prompt-option">
+            <input type="radio" name="prompt_id" value="">
+            <span>Eigen instructies</span>
+          </label>
+          <input type="text" id="user_prompt" name="user_prompt"
+            placeholder="bv. 'kort en krachtig, focus op de sprekers'"
+            class="custom-prompt-input">
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" class="btn-primary" id="generate-btn">Genereer post ✦</button>
+          <a href="/prompts" class="manage-prompts">Stijlen beheren</a>
+          <a href="/settings" class="llm-badge-link" title="Actief taalmodel — klik om te wijzigen">
+            <span class="llm-pill" style="background:{{ active_llm.color }}">{{ active_llm.id }}</span>
+          </a>
+        </div>
+      </form>
+    </section>
+
+    {% if drafts %}
+    <section class="card">
+      <h2>Opgeslagen drafts</h2>
+      <div class="draft-list">
+        {% for draft in drafts %}
+        <a href="/draft/{{ draft.id }}" class="draft-item">
+          <span class="draft-title">{{ draft.event_title }}</span>
+          <span class="draft-meta">{{ draft.updated_at[:10] }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </main>
+  <div id="loading-overlay" style="display:none">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Post genereren…</p>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('nav-menu').classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+      if (!document.getElementById('hamburger').contains(e.target)) {
+        document.getElementById('nav-menu').classList.remove('open');
+      }
+    });
+
+    const today = new Date().toISOString().slice(0, 10);
+    const timeTabs = document.querySelectorAll('.filter-tab');
+    const providerTabs = document.querySelectorAll('.filter-tab-provider');
+    const items = document.querySelectorAll('#ticket-list .ticket-item');
+
+    function activeFilters(tabs) {
+      return new Set([...tabs].filter(t => t.classList.contains('active')).map(t => t.dataset.filter || t.dataset.provider));
+    }
+
+    function applyFilters() {
+      const activeTimes = activeFilters(timeTabs);
+      const activeProviders = activeFilters(providerTabs);
+      let visible = 0;
+      items.forEach(item => {
+        const date = item.dataset.date;
+        const provider = item.dataset.provider;
+
+        const timeOk = (activeTimes.has('upcoming') && (!date || date >= today))
+                    || (activeTimes.has('past') && date && date < today);
+
+        const providerOk = activeProviders.size === 0 || activeProviders.has(provider);
+
+        const show = timeOk && providerOk;
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('no-results').style.display = (items.length > 0 && visible === 0) ? '' : 'none';
+    }
+
+    timeTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tab.classList.toggle('active');
+        applyFilters();
+      });
+    });
+
+    providerTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tab.classList.toggle('active');
+        applyFilters();
+      });
+    });
+
+    applyFilters();
+
+    document.querySelector('form[action="/generate"]').addEventListener('submit', function() {
+      document.getElementById('loading-overlay').style.display = 'flex';
+      const btn = document.getElementById('generate-btn');
+      btn.disabled = true;
+      btn.textContent = 'Bezig…';
+    });
+  </script>
+</body>
+</html>
