@@ -94,15 +94,16 @@
 
     <!-- Generate section: shown after text is ready -->
     <section class="card" id="gen-section" {% if not page_text %}style="display:none"{% endif %}>
-      {% if page_title or target_url %}
-      <p style="font-size:0.82rem;color:#71717a;margin-bottom:0.75rem">{{ page_title or target_url }}</p>
-      {% endif %}
-
       <form method="post" action="/from-url" id="gen-form">
         {{ csrf_field(request) | safe }}
         <input type="hidden" name="target_url" value="{{ target_url }}" id="f-url">
-        <input type="hidden" name="page_title" value="{{ page_title }}" id="f-title">
         <input type="hidden" name="page_text" value="{{ page_text }}" id="f-text">
+
+        <div style="margin-bottom:0.75rem">
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Titel (bewerkbaar)</label>
+          <input type="text" name="page_title" id="f-title" value="{{ page_title }}"
+            style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem">
+        </div>
 
         <div style="margin-bottom:0.75rem">
           <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Inhoud (bewerkbaar)</label>
@@ -192,6 +193,12 @@
       document.getElementById('gen-section').style.display = '';
       document.getElementById('f-text').value = text;
       document.getElementById('preview-text').value = text;
+      // Auto-fill title from first non-empty line (mirrors server-side logic)
+      const titleEl = document.getElementById('f-title');
+      if (!titleEl.value.trim()) {
+        const firstLine = text.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';
+        titleEl.value = firstLine.slice(0, 120);
+      }
     }
   </script>
 </body>

@@ -1066,7 +1066,12 @@ def _scrape_url(url: str) -> tuple[str, str]:
     resp = requests.get(url, headers=headers, timeout=10)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-    title = soup.title.string.strip() if soup.title else url
+    # Prefer og:title (clean event name) over <title> (often has site suffix)
+    og = soup.find("meta", property="og:title")
+    if og and og.get("content", "").strip():
+        title = og["content"].strip()
+    else:
+        title = soup.title.string.strip() if soup.title else url
     # Remove nav, footer, scripts, styles
     for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
         tag.decompose()
@@ -1089,7 +1094,9 @@ async def from_url_get(request: Request, current_user=Depends(get_current_user),
     if text:
         # Selected text shared directly — no scraping needed
         page_text = text[:6000]
-        page_title = page_title or target_url or "Gedeelde tekst"
+        # Use first non-empty line of selected text as title (usually the session name)
+        first_line = next((l.strip() for l in text.splitlines() if l.strip()), "")
+        page_title = first_line[:120] if first_line else (target_url or "Gedeelde tekst")
     elif target_url:
         try:
             page_title, page_text = await asyncio.get_event_loop().run_in_executor(
