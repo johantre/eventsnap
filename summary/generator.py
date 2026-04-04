@@ -129,12 +129,10 @@ Tags: {', '.join(event.tags)}
 {html_to_text(event.description)}
 """.strip()
 
+    extra = f"\n\nBelangrijke instructies (hebben voorrang op de standaardinstellingen):\n{user_prompt}" if user_prompt else ""
     user_message = f"""Schrijf een LinkedIn post voor dit event dat ik ga bijwonen:
 
-{event_text}
-
-Aanvullende instructies:
-{user_prompt}"""
+{event_text}{extra}"""
 
     if llm == "groq":
         return _generate_groq(user_message, effective_system)

@@ -592,13 +592,14 @@ async def generate(
         provider = get_providers_for_user(uid)[provider_name]
         event = provider.fetch_event_by_id(event_id)
 
+        prompt_text = ""
         if prompt_id:
             db = get_db()
             row = db.execute("SELECT prompt_text FROM prompts WHERE id = ? AND user_id = ?", (prompt_id, uid)).fetchone()
             db.close()
             prompt_text = row["prompt_text"] if row else ""
-        else:
-            prompt_text = user_prompt
+        if user_prompt.strip():
+            prompt_text = (prompt_text + "\n" + user_prompt).strip() if prompt_text else user_prompt
 
         active_llm = get_setting("active_llm", uid) or "groq"
         env_map = {"groq": "GROQ_API_KEY", "claude": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY"}
@@ -1134,25 +1135,25 @@ async def from_url_post(
     active_llm = get_setting("active_llm", uid) or "groq"
 
     db = get_db()
-    prompt_text = user_prompt
+    prompt_text = ""
     if prompt_id:
         row = db.execute("SELECT prompt_text FROM prompts WHERE id = ? AND user_id = ?",
                          (prompt_id, uid)).fetchone()
         if row:
             prompt_text = row["prompt_text"]
+    if user_prompt.strip():
+        prompt_text = (prompt_text + "\n" + user_prompt).strip() if prompt_text else user_prompt
 
     from summary.generator import SYSTEM_PROMPT, html_to_text
     custom_system = get_setting("system_prompt", uid) or SYSTEM_PROMPT
 
+    extra = f"\n\nBelangrijke instructies (hebben voorrang op de standaardinstellingen):\n{prompt_text}" if prompt_text else ""
     user_message = f"""Schrijf een LinkedIn post voor dit event dat ik ga bijwonen of heb bijgewoond.
 Haal de relevante informatie (sprekers, thema's, locatie, datum) uit de onderstaande paginatekst.
 
 URL: {target_url}
 Paginatekst:
-{page_text}
-
-Aanvullende instructies:
-{prompt_text or "Schrijf een professionele maar persoonlijke post in het Nederlands."}"""
+{page_text}{extra}"""
 
     try:
         t0 = _time.time()
