@@ -176,17 +176,11 @@
             <span class="cost-line">
               {% if llm.cost == 'free' %}✅{% elif llm.cost == 'coin' %}🪙{% elif llm.cost == 'card' %}💳{% endif %}
               {{ llm.cost_tip | replace('·', '<br>') | safe }}
+              {% if llm.cost == 'coin' and llm.has_key %}
+              <span style="display:block;margin-top:0.2rem">Verbruik: ${{ "%.4f"|format(llm.spent_usd) }}</span>
+              {% endif %}
             </span>
           </div>
-          {% if llm.cost == 'coin' and llm.has_key %}
-          <div class="llm-spend-row">
-            <span class="llm-spend-label">Verbruik: ${{ "%.4f"|format(llm.spent_usd) }}</span>
-            <div class="llm-spend-bar">
-              <div class="llm-spend-fill" style="width:{{ [[llm.spent_usd / 5 * 100, 100]|min, 0]|max }}%"></div>
-            </div>
-            <span class="llm-spend-max">$5</span>
-          </div>
-          {% endif %}
           <div class="llm-key-row">
             <div class="key-input-wrap" id="wrap-{{ llm.id }}">
               <input type="password" id="key-{{ llm.id }}"
