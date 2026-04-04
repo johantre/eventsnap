@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/manifest.json">
+  <title>Genereer vanuit URL – EventSnap</title>
+  <link rel="stylesheet" href="/static/style.css?v=13">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-top">
+        <div>
+          <a href="/" class="back">← Terug</a>
+          <h1>Genereer vanuit URL</h1>
+        </div>
+        <div class="nav-wrap">
+          <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="/prompts">Stijlen</a>
+            <a href="/settings">Instellingen</a>
+            <a href="/account">Account</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <form action="/logout" method="post" style="margin:0">
+              {{ csrf_field(request) | safe }}
+              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+            </form>
+          </nav>
+        </div>
+      </div>
+      <p>Plak een agenda-URL en genereer een LinkedIn post.</p>
+    </div>
+  </header>
+
+  {% include '_verify_banner.html' %}
+
+  <main>
+    {% if error %}
+    <div class="toast toast-error">{{ error }}</div>
+    {% endif %}
+
+    {% if not page_text %}
+    <!-- Step 1: enter URL -->
+    <section class="card">
+      <h2 class="section-heading">Agenda URL</h2>
+      <form method="get" action="/from-url">
+        <input type="url" name="url" value="{{ target_url }}"
+               placeholder="https://sessionize.com/mijn-event/"
+               style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:1rem;margin-bottom:1rem"
+               required autofocus>
+        <button type="submit" class="btn-primary">Ophalen</button>
+      </form>
+    </section>
+    {% else %}
+    <!-- Step 2: preview + generate -->
+    <section class="card" style="margin-bottom:1rem">
+      <h2 class="section-heading">{{ page_title or target_url }}</h2>
+      <p style="font-size:0.8rem;color:#71717a;margin-bottom:0.5rem">{{ target_url }}</p>
+      <details>
+        <summary style="font-size:0.85rem;color:#52525b;cursor:pointer;margin-bottom:0.5rem">Opgehaalde tekst bekijken</summary>
+        <pre style="font-size:0.75rem;color:#71717a;white-space:pre-wrap;max-height:200px;overflow-y:auto;background:#f9f9f9;padding:0.75rem;border-radius:6px">{{ page_text }}</pre>
+      </details>
+    </section>
+
+    <section class="card">
+      <form method="post" action="/from-url" id="gen-form">
+        {{ csrf_field(request) | safe }}
+        <input type="hidden" name="target_url" value="{{ target_url }}">
+        <input type="hidden" name="page_title" value="{{ page_title }}">
+        <input type="hidden" name="page_text" value="{{ page_text }}">
+
+        {% if prompts %}
+        <div style="margin-bottom:1rem">
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Stijl</label>
+          <select name="prompt_id" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem">
+            <option value="">— Geen stijl —</option>
+            {% for p in prompts %}
+            <option value="{{ p.id }}">{{ p.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom:1rem">
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Aanvullende instructies (optioneel)</label>
+          <textarea name="user_prompt" rows="3" placeholder="Bv. focus op de keynote sprekers..."
+            style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem;resize:vertical"></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" onclick="showLoading()">Genereer post</button>
+          <a href="/from-url" class="btn-delete" style="text-decoration:none;display:inline-block">Andere URL</a>
+        </div>
+      </form>
+    </section>
+    {% endif %}
+  </main>
+
+  <div id="loading-overlay" style="display:none">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Post genereren…</p>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
+    document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
+    function showLoading() {
+      document.getElementById('loading-overlay').style.display = 'flex';
+      document.querySelectorAll('button, textarea, input, select').forEach(el => el.disabled = true);
+    }
+  </script>
+</body>
+</html>

@@ -1052,3 +1052,143 @@ async def delete_draft(draft_id: int, request: Request, current_user=Depends(get
     db.commit()
     db.close()
     return RedirectResponse("/", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# From URL — scrape any agenda page and generate a post
+# ---------------------------------------------------------------------------
+
+def _scrape_url(url: str) -> tuple[str, str]:
+    """Fetch a URL and return (page_title, clean_text). Raises on failure."""
+    import requests
+    from bs4 import BeautifulSoup
+    headers = {"User-Agent": "Mozilla/5.0 (EventSnap/1.0)"}
+    resp = requests.get(url, headers=headers, timeout=10)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+    title = soup.title.string.strip() if soup.title else url
+    # Remove nav, footer, scripts, styles
+    for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+        tag.decompose()
+    text = soup.get_text(separator="\n")
+    # Collapse excessive whitespace
+    import re
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return title, text[:6000]  # cap at 6000 chars to stay within token limits
+
+
+@app.get("/from-url", response_class=HTMLResponse)
+async def from_url_get(request: Request, current_user=Depends(get_current_user),
+                       url: str = "", text: str = "", title: str = ""):
+    uid = current_user["id"]
+    # Share target may send the URL in 'text' or 'url' param
+    target_url = url or text or ""
+    error = None
+    page_title = ""
+    page_text = ""
+
+    if target_url:
+        try:
+            page_title, page_text = await asyncio.get_event_loop().run_in_executor(
+                None, lambda: _scrape_url(target_url)
+            )
+        except Exception as e:
+            error = f"Pagina ophalen mislukt: {e}"
+
+    db = get_db()
+    prompts = db.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
+    db.close()
+
+    return templates.TemplateResponse(request, "from_url.html", {
+        "current_user": current_user,
+        "target_url": target_url,
+        "page_title": page_title,
+        "page_text": page_text,
+        "prompts": prompts,
+        "error": error,
+    })
+
+
+@app.post("/from-url", response_class=HTMLResponse)
+async def from_url_post(
+    request: Request,
+    current_user=Depends(get_current_user),
+    _csrf=Depends(verify_csrf),
+    target_url: str = Form(""),
+    page_title: str = Form(""),
+    page_text: str = Form(""),
+    prompt_id: int = Form(None),
+    user_prompt: str = Form(""),
+):
+    uid = current_user["id"]
+    active_llm = get_setting("active_llm", uid) or "groq"
+
+    db = get_db()
+    prompt_text = user_prompt
+    if prompt_id:
+        row = db.execute("SELECT prompt_text FROM prompts WHERE id = ? AND user_id = ?",
+                         (prompt_id, uid)).fetchone()
+        if row:
+            prompt_text = row["prompt_text"]
+
+    from summary.generator import SYSTEM_PROMPT, html_to_text
+    custom_system = get_setting("system_prompt", uid) or SYSTEM_PROMPT
+
+    user_message = f"""Schrijf een LinkedIn post voor dit event dat ik ga bijwonen of heb bijgewoond.
+Haal de relevante informatie (sprekers, thema's, locatie, datum) uit de onderstaande paginatekst.
+
+URL: {target_url}
+Paginatekst:
+{page_text}
+
+Aanvullende instructies:
+{prompt_text or "Schrijf een professionele maar persoonlijke post in het Nederlands."}"""
+
+    try:
+        t0 = _time.time()
+        # Load LLM key into env if needed
+        stored_key = get_setting(f"{active_llm}_api_key", uid)
+        env_map = {"groq": "GROQ_API_KEY", "claude": "ANTHROPIC_API_KEY",
+                   "openai": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY"}
+        if stored_key and active_llm in env_map:
+            os.environ[env_map[active_llm]] = stored_key
+
+        from summary.generator import _generate_groq, _generate_gemini, _generate_claude, _generate_openai
+        generators = {"groq": _generate_groq, "gemini": _generate_gemini,
+                      "claude": _generate_claude, "openai": _generate_openai}
+        post_text, input_tokens, output_tokens = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: generators[active_llm](user_message, custom_system)
+        )
+        generation_ms = int((_time.time() - t0) * 1000)
+        cost_usd = calc_cost_usd(active_llm, input_tokens, output_tokens)
+
+        cursor = db.execute(
+            "INSERT INTO drafts (user_id, event_id, event_title, event_date, post_text, llm, provider, prompt_text, generation_ms) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (uid, target_url, page_title or target_url, None, post_text,
+             active_llm, "url", prompt_text or "", generation_ms),
+        )
+        draft_id = cursor.lastrowid
+        log_event(db, uid, "generate_ok", {
+            "llm": active_llm, "provider": "url", "duration_ms": generation_ms,
+            "draft_id": draft_id, "event_title": page_title,
+            "input_tokens": input_tokens, "output_tokens": output_tokens, "cost_usd": cost_usd,
+        })
+        db.commit()
+        db.close()
+        return RedirectResponse(f"/draft/{draft_id}", status_code=303)
+    except Exception as e:
+        db.close()
+        prompts_list = []
+        db2 = get_db()
+        prompts_list = db2.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
+        db2.close()
+        from urllib.parse import quote
+        return templates.TemplateResponse(request, "from_url.html", {
+            "current_user": current_user,
+            "target_url": target_url,
+            "page_title": page_title,
+            "page_text": page_text,
+            "prompts": prompts_list,
+            "error": f"Generatie mislukt: {_friendly_error(e, active_llm)}",
+        }, status_code=500)

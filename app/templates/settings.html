@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="manifest" href="/static/manifest.json">
   <title>Instellingen – EventSnap</title>
   <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
@@ -204,6 +205,27 @@
         </div>
       </form>
     </section>
+
+    <section class="card">
+      <h2 class="section-heading">Genereer vanuit URL</h2>
+      <p class="section-sub">Gebruik EventSnap op eender welke agenda-pagina.</p>
+
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">Desktop — Bookmarklet</p>
+        <p style="font-size:0.82rem;color:#71717a;margin-bottom:0.75rem">Sleep de knop hieronder naar je bookmarksbalk. Klik erop op een agenda-pagina om EventSnap te openen met die URL.</p>
+        <a href="javascript:(function(){window.open('https://eventsnap.dreamlead.be/from-url?url='+encodeURIComponent(window.location.href),'_blank');})();"
+           style="display:inline-block;padding:0.4rem 0.9rem;background:#0a66c2;color:#fff;border-radius:6px;font-size:0.85rem;text-decoration:none;cursor:grab"
+           onclick="alert('Sleep deze knop naar je bookmarksbalk — klik er niet op!');return false;">
+          📋 EventSnap
+        </a>
+      </div>
+
+      <div>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">Mobiel — Installeer als app</p>
+        <p style="font-size:0.82rem;color:#71717a">Voeg EventSnap toe aan je startscherm via je browser (iOS: Delen → Zet op beginscherm / Android: Menu → App installeren). Daarna verschijnt EventSnap in het <strong>Delen</strong> menu van je telefoon.</p>
+      </div>
+    </section>
+
   </main>
   <script>
     function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
