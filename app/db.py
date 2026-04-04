@@ -449,9 +449,11 @@ def init_db():
 
     count = conn.execute("SELECT COUNT(*) FROM prompts").fetchone()[0]
     if count == 0:
-        conn.executemany(
-            "INSERT INTO prompts (title, prompt_text) VALUES (?, ?)",
-            SEED_PROMPTS,
-        )
+        first_user = conn.execute("SELECT id FROM users ORDER BY id LIMIT 1").fetchone()
+        if first_user:
+            conn.executemany(
+                "INSERT INTO prompts (user_id, title, prompt_text) VALUES (?, ?, ?)",
+                [(first_user["id"], title, text) for title, text in SEED_PROMPTS],
+            )
     conn.commit()
     conn.close()
