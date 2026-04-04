@@ -31,6 +31,7 @@ from app.db import (
     consume_email_verification_token, mark_email_verified,
     get_all_users_with_stats, set_user_verified, log_event,
     get_admin_kpis, get_posts_per_day, get_llm_stats, get_fail_stats, get_user_activity_stats,
+    get_llm_cost_per_user,
 )
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "changeme-set-SECRET_KEY-in-env")
@@ -535,6 +536,20 @@ LLM_OPTIONS = [
      "color": "#2563eb", "cost": "card", "cost_tip": "Gratis tier · credit card info nodig"},
 ]
 
+# Cost per 1M tokens in USD (input, output)
+LLM_COSTS_PER_1M = {
+    "groq":   (0.0,  0.0),    # free
+    "claude": (3.0,  15.0),   # claude-sonnet-4-6
+    "openai": (0.15, 0.60),   # gpt-4o-mini
+    "gemini": (0.0,  0.0),    # free tier
+}
+
+
+def calc_cost_usd(llm: str, input_tokens: int, output_tokens: int) -> float:
+    input_price, output_price = LLM_COSTS_PER_1M.get(llm, (0.0, 0.0))
+    return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -594,7 +609,7 @@ async def generate(
 
         custom_system_prompt = get_setting("system_prompt", uid) or None
         t0 = _time.time()
-        post_text = await asyncio.get_event_loop().run_in_executor(
+        post_text, input_tokens, output_tokens = await asyncio.get_event_loop().run_in_executor(
             None,
             lambda: generate_linkedin_post(
                 event,
@@ -604,6 +619,7 @@ async def generate(
             )
         )
         generation_ms = int((_time.time() - t0) * 1000)
+        cost_usd = calc_cost_usd(active_llm, input_tokens, output_tokens)
         db = get_db()
         cursor = db.execute(
             "INSERT INTO drafts (user_id, event_id, event_title, event_date, post_text, llm, provider, prompt_text, generation_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -614,6 +630,8 @@ async def generate(
             "llm": active_llm, "provider": provider_name,
             "duration_ms": generation_ms, "draft_id": draft_id,
             "event_title": event.title,
+            "input_tokens": input_tokens, "output_tokens": output_tokens,
+            "cost_usd": cost_usd,
         })
         db.commit()
         db.close()
@@ -864,10 +882,13 @@ async def admin_delete_user(user_id: int, request: Request, current_user=Depends
 async def settings_page(request: Request, current_user=Depends(get_current_user)):
     uid = current_user["id"]
     active_llm = get_setting("active_llm", uid)
+    db = get_db()
+    cost_per_llm = get_llm_cost_per_user(db, uid)
+    db.close()
     llms = []
     for opt in LLM_OPTIONS:
         has_key = bool(get_setting(f"{opt['id']}_api_key", uid))
-        llms.append({**opt, "has_key": has_key})
+        llms.append({**opt, "has_key": has_key, "spent_usd": cost_per_llm.get(opt["id"], 0.0)})
 
     collective_url_default = "https://wintercircus.odoo.com"
 
@@ -988,11 +1009,12 @@ async def regenerate_draft(draft_id: int, request: Request, current_user=Depends
         custom_system_prompt = get_setting("system_prompt", uid) or None
         saved_prompt = draft["prompt_text"] or "Schrijf een professionele maar persoonlijke post in het Nederlands."
         t0 = _time.time()
-        post_text = await asyncio.get_event_loop().run_in_executor(
+        post_text, input_tokens, output_tokens = await asyncio.get_event_loop().run_in_executor(
             None,
             lambda: generate_linkedin_post(event, saved_prompt, llm=llm_id, system_prompt=custom_system_prompt)
         )
         generation_ms = int((_time.time() - t0) * 1000)
+        cost_usd = calc_cost_usd(llm_id, input_tokens, output_tokens)
 
         db = get_db()
         db.execute(
@@ -1002,6 +1024,8 @@ async def regenerate_draft(draft_id: int, request: Request, current_user=Depends
         log_event(db, uid, "regenerate_ok", {
             "llm": llm_id, "provider": provider_name,
             "duration_ms": generation_ms, "draft_id": draft_id,
+            "input_tokens": input_tokens, "output_tokens": output_tokens,
+            "cost_usd": cost_usd,
         })
         db.commit()
         db.close()

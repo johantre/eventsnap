@@ -113,7 +113,10 @@ def detect_llm() -> str:
     raise RuntimeError("Geen LLM API key gevonden in .env")
 
 
-def generate_linkedin_post(event: Event, user_prompt: str, llm: str = None, system_prompt: str = None) -> str:
+def generate_linkedin_post(
+    event: Event, user_prompt: str, llm: str = None, system_prompt: str = None
+) -> tuple[str, int, int]:
+    """Returns (post_text, input_tokens, output_tokens)."""
     if llm is None:
         llm = detect_llm()
     effective_system = system_prompt or SYSTEM_PROMPT
@@ -145,7 +148,7 @@ Aanvullende instructies:
         raise ValueError(f"Onbekende LLM: {llm}")
 
 
-def _generate_groq(user_message: str, system_prompt: str) -> str:
+def _generate_groq(user_message: str, system_prompt: str) -> tuple[str, int, int]:
     from groq import Groq
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
     response = client.chat.completions.create(
@@ -155,20 +158,22 @@ def _generate_groq(user_message: str, system_prompt: str) -> str:
             {"role": "user", "content": user_message},
         ],
     )
-    return response.choices[0].message.content
+    usage = response.usage
+    return response.choices[0].message.content, usage.prompt_tokens, usage.completion_tokens
 
 
-def _generate_gemini(user_message: str, system_prompt: str) -> str:
+def _generate_gemini(user_message: str, system_prompt: str) -> tuple[str, int, int]:
     from google import genai
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=f"{system_prompt}\n\n{user_message}",
     )
-    return response.text
+    usage = response.usage_metadata
+    return response.text, usage.prompt_token_count or 0, usage.candidates_token_count or 0
 
 
-def _generate_claude(user_message: str, system_prompt: str) -> str:
+def _generate_claude(user_message: str, system_prompt: str) -> tuple[str, int, int]:
     import anthropic
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], timeout=60.0)
     message = client.messages.create(
@@ -177,10 +182,11 @@ def _generate_claude(user_message: str, system_prompt: str) -> str:
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
     )
-    return message.content[0].text
+    usage = message.usage
+    return message.content[0].text, usage.input_tokens, usage.output_tokens
 
 
-def _generate_openai(user_message: str, system_prompt: str) -> str:
+def _generate_openai(user_message: str, system_prompt: str) -> tuple[str, int, int]:
     from openai import OpenAI
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.chat.completions.create(
@@ -190,4 +196,5 @@ def _generate_openai(user_message: str, system_prompt: str) -> str:
             {"role": "user", "content": user_message},
         ],
     )
-    return response.choices[0].message.content
+    usage = response.usage
+    return response.choices[0].message.content, usage.prompt_tokens, usage.completion_tokens

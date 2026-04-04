@@ -56,7 +56,7 @@ async def test_generate_ok_logs_event(authed_client, test_db):
     mock_event = _make_event()
     with patch("app.server.get_providers_for_user", return_value={
         "collective": MagicMock(fetch_event_by_id=MagicMock(return_value=mock_event))
-    }), patch("app.server.generate_linkedin_post", return_value="Test post"):
+    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)):
         await authed_client.post("/generate", data={
             "ticket_key": "collective:ev1",
             "user_prompt": "Test prompt",
@@ -76,7 +76,7 @@ async def test_generate_stores_generation_ms(authed_client, test_db):
     mock_event = _make_event()
     with patch("app.server.get_providers_for_user", return_value={
         "collective": MagicMock(fetch_event_by_id=MagicMock(return_value=mock_event))
-    }), patch("app.server.generate_linkedin_post", return_value="Test post"):
+    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)):
         await authed_client.post("/generate", data={
             "ticket_key": "collective:ev1",
             "user_prompt": "Test prompt",

@@ -286,6 +286,10 @@ textarea:focus { border-color: #0a66c2; }
 .key-msg { font-size: 0.78rem; margin: 0.15rem 0 0; }
 .key-msg-ok { color: #22c55e; }
 .key-msg-err { color: #ef4444; }
+.llm-spend-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.75rem; color: #71717a; }
+.llm-spend-bar { flex: 1; height: 6px; background: #e4e4e7; border-radius: 3px; overflow: hidden; }
+.llm-spend-fill { height: 100%; background: #0a66c2; border-radius: 3px; transition: width 0.3s; }
+.llm-spend-max { white-space: nowrap; }
 @keyframes pulse-border {
   0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.3); }
   50% { box-shadow: 0 0 0 4px rgba(139,92,246,0.15); }

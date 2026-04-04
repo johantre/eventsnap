@@ -106,6 +106,21 @@ def get_llm_stats(conn) -> list:
     """).fetchall()
 
 
+def get_llm_cost_per_user(conn, user_id: int) -> dict:
+    """Returns {llm_id: total_cost_usd} for a given user."""
+    rows = conn.execute("""
+        SELECT
+            json_extract(properties, '$.llm') AS llm,
+            SUM(CAST(json_extract(properties, '$.cost_usd') AS REAL)) AS total_usd
+        FROM analytics_events
+        WHERE user_id = ?
+          AND event_type IN ('generate_ok', 'regenerate_ok')
+          AND json_extract(properties, '$.cost_usd') IS NOT NULL
+        GROUP BY llm
+    """, (user_id,)).fetchall()
+    return {row["llm"]: row["total_usd"] or 0.0 for row in rows}
+
+
 def get_fail_stats(conn) -> list:
     return conn.execute("""
         SELECT

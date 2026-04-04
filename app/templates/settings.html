@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <title>Instellingen – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
   <header>
@@ -178,6 +178,15 @@
               {{ llm.cost_tip | replace('·', '<br>') | safe }}
             </span>
           </div>
+          {% if llm.cost == 'coin' and llm.has_key %}
+          <div class="llm-spend-row">
+            <span class="llm-spend-label">Verbruik: ${{ "%.4f"|format(llm.spent_usd) }}</span>
+            <div class="llm-spend-bar">
+              <div class="llm-spend-fill" style="width:{{ [[llm.spent_usd / 5 * 100, 100]|min, 0]|max }}%"></div>
+            </div>
+            <span class="llm-spend-max">$5</span>
+          </div>
+          {% endif %}
           <div class="llm-key-row">
             <div class="key-input-wrap" id="wrap-{{ llm.id }}">
               <input type="password" id="key-{{ llm.id }}"
