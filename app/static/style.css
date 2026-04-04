@@ -18,7 +18,7 @@ header {
 }
 .header-top { display: flex; justify-content: space-between; align-items: center; }
 .header-top > div:first-child { position: relative; }
-header h1 { font-size: 1.5rem; font-weight: 700; }
+header h1 { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
 .brand-title { font-family: 'Poppins', sans-serif; font-weight: 700; color: white; }
 header p  { margin-top: 0.25rem; opacity: 0.85; font-size: 0.9rem; }
 
