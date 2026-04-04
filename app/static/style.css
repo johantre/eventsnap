@@ -17,6 +17,7 @@ header {
   margin: 0 auto;
 }
 .header-top { display: flex; justify-content: space-between; align-items: center; }
+.header-top > div:first-child { position: relative; }
 header h1 { font-size: 1.5rem; font-weight: 700; }
 .brand-title { font-family: 'Poppins', sans-serif; font-weight: 700; color: white; }
 header p  { margin-top: 0.25rem; opacity: 0.85; font-size: 0.9rem; }
@@ -54,9 +55,7 @@ header p  { margin-top: 0.25rem; opacity: 0.85; font-size: 0.9rem; }
 .nav-logout:hover { background: rgba(255,255,255,0.1); opacity: 1; }
 .nav-wrap { position: relative; }
 
-.back { color: white; text-decoration: none; opacity: 0.85; font-size: 0.9rem; display: block; margin-bottom: 0.5rem; }
-.back:hover { opacity: 1; }
-.back { color: white; text-decoration: none; opacity: 0.85; font-size: 0.9rem; display: block; margin-bottom: 0.5rem; }
+.back { color: white; text-decoration: none; opacity: 0.85; font-size: 0.85rem; position: absolute; bottom: 100%; margin-bottom: 0.2rem; }
 .back:hover { opacity: 1; }
 .event-date { margin-top: 0.25rem; opacity: 0.8; font-size: 0.85rem; }
 
