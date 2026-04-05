@@ -1,4 +1,4 @@
-# EventSnap — Usage Guide
+# EventSnap  <img style="vertical-align: top" src='app/static/icon-128.png' width='40' height='40' /> — Usage Guide
 
 EventSnap is available at **[eventsnap.dreamlead.be](https://eventsnap.dreamlead.be)**.
 
