@@ -25,7 +25,13 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
-        run: .venv/bin/python -m pytest tests/ -q
+        run: .venv/bin/python -m pytest tests/ -q --cov=app --cov=summary --cov=providers --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
 
   deploy:
     name: Deploy to host
