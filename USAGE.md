@@ -48,18 +48,20 @@ Use this when you're attending a session at an event that isn't in your ticket p
 
 1. Go to any agenda or session page
 2. Select the session text (title + description + speaker)
+3. Copy the selection (optional, in case the bookmark isn't picking up the right text)
 
    ![Select session text on a conference agenda page](docs/images/desktop-usage-1.png)
 
-3. Click the **EventSnap** bookmark in your bookmarks bar — the text opens directly in EventSnap
+4. Click the **EventSnap** bookmark in your bookmarks bar — the text opens directly in EventSnap. \
+In case it didn't, paste your copied text to provide the right info of your session.
 
    ![EventSnap form pre-filled with the selected session text](docs/images/desktop-usage-3.png)
 
-4. Optionally add extra instructions (e.g. "write in English", "focus on the Q&A")
+5. Optionally add extra instructions (e.g. "write in English", "focus on the Q&A")
 
    ![Adding extra instructions before generating](docs/images/desktop-usage-4.png)
 
-5. Click **Genereer post** — the draft appears, ready to edit and copy
+6. Click **Genereer post** — the draft appears, ready to edit and copy
 
    ![Generated LinkedIn draft](docs/images/desktop-usage-5.png)
 
