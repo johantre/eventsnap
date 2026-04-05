@@ -1,4 +1,4 @@
-# EventSnap — Setup Guide
+# EventSnap  <img style="vertical-align: bottom" src='app/static/icon-128.png' width='40' height='40' /> — Setup Guide
 
 This guide covers everything you need to get started. You can be up and running in 5 minutes with just a free API key.
 
