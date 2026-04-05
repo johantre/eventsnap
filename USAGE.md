@@ -100,13 +100,7 @@ Useful when text is inside a popup or the bookmarklet isn't available:
 
 ## Getting started
 
-Before EventSnap can generate anything, **you need at least one AI model configured**. This is the only required setup step — event providers are optional.
-
-1. Go to **Settings → Language model (LLM)**
-2. Pick a model — Groq and Gemini are both free; Groq requires no credit card details
-3. Paste your API key — it's validated immediately and saved
-
-Once a key is in place, you can generate posts straight away.
+**New here? Start with [SETUP.md](SETUP.md)** — it covers getting an API key (required), connecting event providers (optional), and what works with a minimal setup.
 
 ---
 
