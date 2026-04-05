@@ -2,13 +2,13 @@
 
 Generate LinkedIn post drafts from event agendas and conference session pages — in seconds.
 
-EventSnap connects to your ticket platforms (Collective, Eventbrite), pulls your upcoming events, and uses an AI language model of your choice to draft a ready-to-post LinkedIn update. It also lets you generate posts directly from any conference agenda page by sharing or pasting session text.
+EventSnap connects to your ticket platforms (Collective, Eventbrite, Meetup), pulls your upcoming events, and uses an AI language model of your choice to draft a ready-to-post LinkedIn update. It also lets you generate posts directly from any conference agenda page by sharing or pasting session text.
 
 Self-hosted web app with multi-user support, 2FA, and PWA capabilities.
 
 ## Features
 
-- **Ticket-based generation** — fetch events from Collective (Odoo) and Eventbrite, generate a LinkedIn post per event
+- **Ticket-based generation** — fetch events from Collective (Odoo), Eventbrite and Meetup, generate a LinkedIn post per event
 - **Generate from any page** — share a URL or paste/select session text from any agenda page (Sessionize, Sched, custom sites); EventSnap scrapes or receives the text and generates a post
 - **Multiple LLMs** — Groq (Llama 3.3 70B), Claude (Sonnet 4.6), OpenAI (GPT-4o mini), Gemini (2.5 Flash)
 - **Styles (prompts)** — save reusable prompt styles (e.g. "formal", "personal", "English") and apply them per generation
@@ -99,13 +99,13 @@ pytest tests/ -q
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). This means you can:
 
-- **Share**: copy and redistribute the material in any medium or format
-- **Adapt**: remix, transform, and build upon the material
+- Share: copy and redistribute the material in any medium or format
+- Adapt: remix, transform, and build upon the material
 
 Under the following terms:
-- **Attribution**: you must give appropriate credit, provide a link to the license, and indicate if changes were made
-- **NonCommercial**: you may not use the material for commercial purposes
-- **No additional restrictions**: you may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
+- Attribution: you must give appropriate credit, provide a link to the license, and indicate if changes were made
+- NonCommercial: you may not use the material for commercial purposes
+- No additional restrictions**: you may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
 
 See the [LICENSE](LICENSE) file for details.
 
