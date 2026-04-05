@@ -1170,7 +1170,7 @@ async def from_url_get(request: Request, current_user=Depends(get_current_user),
             )
         except Exception as e:
             tr = TRANSLATIONS[get_lang(request, uid)]
-        error = f"{tr['err_fetch_failed']} {e}"
+            error = f"{tr['err_fetch_failed']} {e}"
 
     db = get_db()
     prompts = db.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
