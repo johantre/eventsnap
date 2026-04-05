@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
   <title>Instellingen – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <link rel="stylesheet" href="/static/style.css?v=18">
 </head>
 <body>
   <header>
@@ -215,13 +215,34 @@
 
       <div style="margin-bottom:1.25rem">
         <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — bookmarklet</p>
-        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.6rem 0">Sleep de knop hieronder naar je bookmarksbalk:</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.6rem 0">
+          <strong>Rechtermuisknop</strong> op de knop hieronder → <strong>Bladwijzer voor deze link</strong> (of "Bookmark this link"):
+        </p>
         <a href="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
-           style="display:inline-block;padding:0.4rem 0.9rem;background:#0a66c2;color:#fff;border-radius:6px;font-size:0.85rem;text-decoration:none;cursor:grab"
-           onclick="alert('Sleep deze knop naar je bookmarksbalk — klik er niet op!');return false;">
+           id="bookmarklet-link"
+           style="display:inline-block;padding:0.4rem 0.9rem;background:#0a66c2;color:#fff;border-radius:6px;font-size:0.85rem;text-decoration:none;cursor:pointer"
+           onclick="return false;">
           📋 EventSnap
         </a>
-        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.4rem">Geen bookmarksbalk? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
+        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">
+          Werkt slepen toch beter? Probeer het vanuit Firefox — dat ondersteunt slepen van <code>javascript:</code> links wel.
+        </p>
+        <details style="margin-top:0.5rem">
+          <summary style="font-size:0.75rem;color:#71717a;cursor:pointer">Manueel aanmaken (alternatief)</summary>
+          <ol style="font-size:0.75rem;color:#71717a;margin:0.4rem 0 0 1rem;padding:0;line-height:1.7">
+            <li>Maak een nieuwe bladwijzer aan (rechtermuisknop op bookmarksbalk → <em>Bladwijzer toevoegen</em>)</li>
+            <li>Geef hem de naam <strong>EventSnap</strong></li>
+            <li>Kopieer de code hieronder en plak die in het URL-veld</li>
+          </ol>
+          <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem">
+            <input id="bm-code" type="text" readonly
+              value="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
+              style="flex:1;font-size:0.7rem;font-family:monospace;padding:0.3rem 0.5rem;border:1px solid #d4d4d8;border-radius:4px;color:#3f3f46;background:#fafafa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            <button onclick="var el=document.getElementById('bm-code');el.select();navigator.clipboard.writeText(el.value);this.textContent='✓ Gekopieerd';setTimeout(()=>this.textContent='Kopieer',2000)"
+              style="padding:0.3rem 0.6rem;font-size:0.75rem;background:#0a66c2;color:#fff;border:none;border-radius:4px;cursor:pointer;white-space:nowrap">Kopieer</button>
+          </div>
+        </details>
+        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">Geen bookmarksbalk? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
       </div>
 
       <div style="margin-bottom:1.25rem">
