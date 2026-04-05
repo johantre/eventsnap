@@ -46,7 +46,7 @@ eventsnap/
 - **Server**: self-hosted on a ChromeBox (Ubuntu Linux)
 - **Public URL**: `eventsnap.dreamlead.be` via Cloudflare tunnel
 - **Process**: systemd service (`eventsnap.service`)
-- **Secrets**: stored in `/etc/eventsnap/env` (root-owned, injected via `EnvironmentFile`), managed through GitHub Secrets on deploy
+- **Secrets**: injected at deploy time via GitHub Secrets, stored server-side as a systemd `EnvironmentFile`
 - **CI/CD**: GitHub Actions with a self-hosted runner — runs tests on every push, deploys to main
 
 ## Setup
