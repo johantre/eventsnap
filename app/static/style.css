@@ -1,11 +1,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { overflow-y: scroll; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #f4f4f5;
   color: #18181b;
   min-height: 100vh;
-  scrollbar-gutter: stable;
 }
 
 header {
