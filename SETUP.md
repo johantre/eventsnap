@@ -8,6 +8,8 @@ This guide covers everything you need to get started. You can be up and running 
 
 EventSnap needs **at least one AI model configured** before it can generate anything. Everything else is optional.
 
+You'll also need a **LinkedIn account** — EventSnap generates the post text, but you paste and publish it on LinkedIn yourself.
+
 ### Step 1 — Get an API key
 
 Pick one of the options below. Groq is the easiest starting point.

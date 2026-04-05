@@ -23,6 +23,11 @@ Self-hosted web app with multi-user support, 2FA, and PWA capabilities.
 ## Usage
 Check out the [Usage](USAGE.md) page.
 
+## Roadmap
+
+- **LinkedIn API integration** — post or schedule directly from EventSnap without leaving the app (pending LinkedIn API approval)
+- **Meetup support** — fetch events from Meetup (requires Meetup Pro subscription)
+
 ## Architecture
 
 ```
