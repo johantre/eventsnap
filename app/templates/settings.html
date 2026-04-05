@@ -144,19 +144,10 @@
           <p class="provider-hint">{{ t.settings_eventbrite_hint | safe }}</p>
         </div>
 
-        <div class="provider-block">
+        <div class="provider-block" style="opacity:0.45;pointer-events:none">
           <div class="provider-header">
-            <span class="provider-name">Meetup</span><span class="llm-sublabel">OAuth bearer token</span>
-          </div>
-          <div class="llm-key-row">
-            <input type="password" name="meetup_token" autocomplete="off"
-              placeholder="{% if meetup_ok %}{{ t.settings_token_leave_empty }}{% else %}Plak hier je OAuth bearer token{% endif %}">
-            <div class="llm-meta">
-              <span class="llm-badge {% if not meetup_ok %}llm-badge-missing{% endif %}">
-                {% if meetup_ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
-              </span>
-              <a href="https://secure.meetup.com/oauth2/authorize" target="_blank" class="llm-key-link">{{ t.settings_get_key }}</a>
-            </div>
+            <span class="provider-name">Meetup</span>
+            <span class="llm-badge llm-badge-missing">{{ t.settings_meetup_coming_soon }}</span>
           </div>
         </div>
 
