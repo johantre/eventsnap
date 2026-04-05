@@ -4,7 +4,7 @@ Generate LinkedIn post drafts from event agendas and conference session pages �
 
 EventSnap connects to your ticket platforms (Collective, Eventbrite), pulls your upcoming events, and uses an AI language model of your choice to draft a ready-to-post LinkedIn update. It also lets you generate posts directly from any conference agenda page by sharing or pasting session text.
 
-Self-hosted web app, publicly accessible via Cloudflare tunnel, with multi-user support and 2FA.
+Self-hosted web app with multi-user support, 2FA, and PWA capabilities.
 
 ## Features
 
@@ -41,13 +41,11 @@ eventsnap/
     └── restore_db.sh       # Restore DB from backup
 ```
 
-## Infrastructure
+## Deployment
 
-- **Server**: self-hosted on a ChromeBox (Ubuntu Linux)
-- **Public URL**: `eventsnap.dreamlead.be` via Cloudflare tunnel
-- **Process**: systemd service (`eventsnap.service`)
-- **Secrets**: injected at deploy time via GitHub Secrets, stored server-side as a systemd `EnvironmentFile`
-- **CI/CD**: GitHub Actions with a self-hosted runner — runs tests on every push, deploys to main
+EventSnap is a standard FastAPI app. It can be deployed on any Linux server using systemd, Docker, or a process manager of your choice. A Cloudflare tunnel is a convenient way to expose it publicly without opening firewall ports.
+
+CI/CD via GitHub Actions is included — the workflow runs tests on every push and deploys on merge to main using a self-hosted runner.
 
 ## Setup
 
@@ -78,7 +76,7 @@ print(Fernet.generate_key().decode())
 uvicorn app.server:app --reload
 ```
 
-### Systemd (production)
+### Production (systemd)
 
 ```bash
 sudo systemctl start eventsnap
@@ -87,8 +85,6 @@ sudo journalctl -u eventsnap -f
 ```
 
 ## Testing
-
-Run the full test suite:
 
 ```bash
 pytest tests/ -q
@@ -103,13 +99,13 @@ pytest tests/ -q
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). This means you can:
 
-- Share: copy and redistribute the material in any medium or format
-- Adapt: remix, transform, and build upon the material
+- **Share**: copy and redistribute the material in any medium or format
+- **Adapt**: remix, transform, and build upon the material
 
 Under the following terms:
-- Attribution: you must give appropriate credit, provide a link to the license, and indicate if changes were made
-- NonCommercial: you may not use the material for commercial purposes
-- No additional restrictions: you may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
+- **Attribution**: you must give appropriate credit, provide a link to the license, and indicate if changes were made
+- **NonCommercial**: you may not use the material for commercial purposes
+- **No additional restrictions**: you may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
 
 See the [LICENSE](LICENSE) file for details.
 
