@@ -27,6 +27,7 @@ Check out the [Usage](USAGE.md) page.
 
 - **LinkedIn API integration** — post or schedule directly from EventSnap without leaving the app (pending LinkedIn API approval)
 - **Meetup support** — fetch events from Meetup (requires Meetup Pro subscription)
+- **Other platforms** — next to LinkedIn add X, Facebook, etc. support 
 
 ## Architecture
 
