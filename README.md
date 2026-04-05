@@ -20,6 +20,9 @@ Self-hosted web app with multi-user support, 2FA, and PWA capabilities.
 - **Encrypted settings** — API keys and credentials encrypted at rest using Fernet symmetric encryption
 - **DB backup** — automatic backup to a private GitHub repo on each change
 
+## Usage
+Check out the [Usage](USAGE.md) page.
+
 ## Architecture
 
 ```

@@ -171,6 +171,7 @@
         {{ csrf_field(request) | safe }}
         <h2 class="section-heading">{{ t.settings_llm_heading }}</h2>
         <p class="section-sub">{{ t.settings_llm_description }}</p>
+        <p style="font-size:0.82rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:0.65rem 0.9rem;color:#1e40af;margin-bottom:1rem">{{ t.settings_llm_required }}</p>
 
         {% for llm in llms %}
         <label class="llm-option {% if llm.has_key %}llm-available{% endif %}" id="llm-option-{{ llm.id }}">
