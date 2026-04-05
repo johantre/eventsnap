@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,34 +8,39 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Statistieken – Admin – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.admin_stats_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/admin/users" class="back">← Gebruikers</a>
-          <h1>Admin — Statistieken</h1>
+          <a href="/admin/users" class="back">{{ t.admin_stats_back }}</a>
+          <h1>{{ t.admin_stats_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            <a href="/admin/users">Admin</a>
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            <a href="/admin/users">{{ t.nav_admin }}</a>
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Gegenereerde posts, modellen en gebruikersactiviteit.</p>
+      <p>{{ t.admin_stats_description }}</p>
     </div>
   </header>
 
@@ -45,15 +50,15 @@
 
     <!-- Posts per dag -->
     <div class="card" style="margin-bottom:1.25rem">
-      <h2 class="section-heading">Posts per dag (laatste 14 dagen)</h2>
+      <h2 class="section-heading">{{ t.admin_stats_posts_per_day }}</h2>
       {% if posts_per_day %}
       <div style="overflow-x:auto;margin-top:1rem">
         <table style="width:100%;border-collapse:collapse;font-size:0.875rem">
           <thead>
             <tr style="border-bottom:2px solid #e4e4e7;text-align:left">
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">Datum</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">Posts</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;width:60%">Balk</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">{{ t.admin_stats_col_date }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">{{ t.admin_stats_col_posts }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;width:60%">{{ t.admin_stats_col_bar }}</th>
             </tr>
           </thead>
           <tbody>
@@ -71,24 +76,24 @@
         </table>
       </div>
       {% else %}
-      <p style="color:#71717a;margin-top:0.75rem">Nog geen data beschikbaar.</p>
+      <p style="color:#71717a;margin-top:0.75rem">{{ t.admin_stats_no_data }}</p>
       {% endif %}
     </div>
 
     <!-- Per-model statistieken -->
     <div class="card" style="margin-bottom:1.25rem">
-      <h2 class="section-heading">Per model</h2>
+      <h2 class="section-heading">{{ t.admin_stats_per_model }}</h2>
       {% if llm_stats %}
       <div style="overflow-x:auto;margin-top:1rem">
         <table style="width:100%;border-collapse:collapse;font-size:0.875rem">
           <thead>
             <tr style="border-bottom:2px solid #e4e4e7;text-align:left">
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">Model</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Posts</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Fouten</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Gem. (s)</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Min (s)</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Max (s)</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">{{ t.admin_stats_col_model }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_posts }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_errors }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_avg }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_min }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_max }}</th>
             </tr>
           </thead>
           <tbody>
@@ -112,21 +117,21 @@
         </table>
       </div>
       {% else %}
-      <p style="color:#71717a;margin-top:0.75rem">Nog geen data beschikbaar.</p>
+      <p style="color:#71717a;margin-top:0.75rem">{{ t.admin_stats_no_data }}</p>
       {% endif %}
     </div>
 
     <!-- Gebruikersactiviteit -->
     <div class="card">
-      <h2 class="section-heading">Gebruikersactiviteit</h2>
+      <h2 class="section-heading">{{ t.admin_stats_user_activity }}</h2>
       {% if user_stats %}
       <div style="overflow-x:auto;margin-top:1rem">
         <table style="width:100%;border-collapse:collapse;font-size:0.875rem">
           <thead>
             <tr style="border-bottom:2px solid #e4e4e7;text-align:left">
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">E-mail</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Drafts</th>
-              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">Laatste activiteit</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600">{{ t.admin_col_email }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_col_drafts }}</th>
+              <th style="padding:0.5rem 0.75rem;color:#52525b;font-weight:600;text-align:right">{{ t.admin_stats_col_last }}</th>
             </tr>
           </thead>
           <tbody>
@@ -143,7 +148,7 @@
         </table>
       </div>
       {% else %}
-      <p style="color:#71717a;margin-top:0.75rem">Nog geen data beschikbaar.</p>
+      <p style="color:#71717a;margin-top:0.75rem">{{ t.admin_stats_no_data }}</p>
       {% endif %}
     </div>
 

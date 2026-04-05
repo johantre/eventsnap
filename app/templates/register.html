@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <title>Registreren – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.register_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,14 +13,19 @@
     <div class="header-inner">
       <div class="header-top">
         <h1 class="brand-title">EventSnap</h1>
+        <form method="post" action="/language" style="margin:0">
+          {{ csrf_field(request) | safe }}
+          <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+          <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+        </form>
       </div>
-      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+      <p>{{ t.tagline }}</p>
     </div>
   </header>
 
   <main>
     <div class="card">
-      <h2 style="margin-bottom:1.25rem">Account aanmaken</h2>
+      <h2 style="margin-bottom:1.25rem">{{ t.register_heading }}</h2>
 
       {% if error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ error }}</div>
@@ -29,31 +34,31 @@
       <form method="post" action="/register" style="display:flex;flex-direction:column;gap:0.875rem">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">E-mailadres</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.email_label }}</label>
           <input type="email" name="email" required autocomplete="email"
                  style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Wachtwoord <span style="font-weight:400;color:#71717a">(min. 8 tekens)</span></label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.pw_label }} <span style="font-weight:400;color:#71717a">({{ t.register_pw_min }})</span></label>
           <div class="pw-wrap">
             <input type="password" id="pw-reg1" name="password" required autocomplete="new-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-reg1', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-reg1', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Wachtwoord herhalen</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.register_pw_repeat }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-reg2" name="password2" required autocomplete="new-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-reg2', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-reg2', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
-        <button type="submit" class="btn-primary" style="margin-top:0.25rem">Account aanmaken</button>
+        <button type="submit" class="btn-primary" style="margin-top:0.25rem">{{ t.register_btn }}</button>
       </form>
 
       <p style="margin-top:1.25rem;font-size:0.85rem;text-align:center;color:#71717a">
-        Al een account? <a href="/login" style="color:#0a66c2;font-weight:600">Inloggen</a>
+        {{ t.register_have_account }} <a href="/login" style="color:#0a66c2;font-weight:600">{{ t.register_login_link }}</a>
       </p>
     </div>
   </main>

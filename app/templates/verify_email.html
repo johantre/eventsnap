@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <title>E-mail verificatie – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.verify_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -14,20 +14,16 @@
       <div class="header-top">
         <h1 class="brand-title">EventSnap</h1>
       </div>
-      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+      <p>{{ t.tagline }}</p>
     </div>
   </header>
   <main>
     <div class="card">
       {% if invalid %}
-      <h2 style="margin-bottom:1rem">Ongeldige verificatielink</h2>
-      <div class="toast toast-error" style="position:static;margin-bottom:1rem">
-        Deze verificatielink is ongeldig of verlopen.
-      </div>
-      <p style="font-size:0.85rem;color:#71717a;margin-bottom:1.25rem">
-        Log in en vraag via de banner een nieuwe verificatiemail aan.
-      </p>
-      <a href="/login" class="btn-primary" style="display:inline-block;text-decoration:none">Naar inloggen</a>
+      <h2 style="margin-bottom:1rem">{{ t.verify_invalid_heading }}</h2>
+      <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ t.verify_invalid_msg }}</div>
+      <p style="font-size:0.85rem;color:#71717a;margin-bottom:1.25rem">{{ t.verify_request_new }}</p>
+      <a href="/login" class="btn-primary" style="display:inline-block;text-decoration:none">{{ t.verify_to_login }}</a>
       {% endif %}
     </div>
   </main>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,34 +8,39 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Twee-staps verificatie – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.s2fa_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/settings" class="back">← Instellingen</a>
-          <h1>Twee-staps verificatie</h1>
+          <a href="/settings" class="back">{{ t.s2fa_back }}</a>
+          <h1>{{ t.s2fa_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Beveilig <strong>{{ current_user.email }}</strong> met een authenticator-app.</p>
+      <p>{{ t.s2fa_description }}</p>
     </div>
   </header>
 
@@ -43,30 +48,26 @@
   <main>
 
     {% if request.query_params.get('enabled') %}
-    <div class="toast">2FA ingeschakeld ✓</div>
+    <div class="toast">{{ t.s2fa_enabled_toast }}</div>
     {% endif %}
     {% if request.query_params.get('disabled') %}
-    <div class="toast">2FA uitgeschakeld</div>
+    <div class="toast">{{ t.s2fa_disabled_toast }}</div>
     {% endif %}
     {% if request.query_params.get('error') == 'session_expired' %}
-    <div class="toast toast-error">Sessie verlopen — scan de QR opnieuw</div>
+    <div class="toast toast-error">{{ t.s2fa_session_expired }}</div>
     {% endif %}
 
     {% if totp_enabled %}
 
     <section class="card">
-      <h2 class="section-heading">Status</h2>
+      <h2 class="section-heading">{{ t.s2fa_status_heading }}</h2>
       <p style="margin-bottom:1.25rem">
-        <span class="llm-badge">✓ 2FA ingeschakeld</span>
+        <span class="llm-badge">{{ t.s2fa_enabled_badge }}</span>
       </p>
-      <p class="section-sub" style="margin-bottom:1.5rem">
-        Je account is beveiligd. Bij het inloggen wordt na je wachtwoord een code gevraagd uit je authenticator-app.
-      </p>
+      <p class="section-sub" style="margin-bottom:1.5rem">{{ t.s2fa_protection }}</p>
 
-      <h2 class="section-heading" style="margin-top:1.5rem">2FA uitschakelen</h2>
-      <p class="section-sub" style="margin-bottom:1rem">
-        Voer een geldige code in om 2FA uit te schakelen.
-      </p>
+      <h2 class="section-heading" style="margin-top:1.5rem">{{ t.s2fa_disable_heading }}</h2>
+      <p class="section-sub" style="margin-bottom:1rem">{{ t.s2fa_disable_description }}</p>
 
       {% if error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ error }}</div>
@@ -75,32 +76,32 @@
       <form method="post" action="/settings/2fa/disable" style="display:flex;gap:0.75rem;align-items:flex-end">
         {{ csrf_field(request) | safe }}
         <div style="flex:1">
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Verificatiecode</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.s2fa_code_label }}</label>
           <input type="text" name="code" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
                  placeholder="000000" autocomplete="off"
                  style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:1.1rem;letter-spacing:0.2em;text-align:center">
         </div>
-        <button type="submit" class="btn-copy" style="white-space:nowrap">Uitschakelen</button>
+        <button type="submit" class="btn-copy" style="white-space:nowrap">{{ t.s2fa_disable_btn }}</button>
       </form>
     </section>
 
     {% else %}
 
     <section class="card">
-      <h2 class="section-heading">Status</h2>
+      <h2 class="section-heading">{{ t.s2fa_status_heading }}</h2>
       <p style="margin-bottom:1.25rem">
-        <span class="llm-badge llm-badge-missing">2FA niet ingeschakeld</span>
+        <span class="llm-badge llm-badge-missing">{{ t.s2fa_not_enabled_badge }}</span>
       </p>
 
-      <h2 class="section-heading" style="margin-top:1.5rem">2FA instellen</h2>
+      <h2 class="section-heading" style="margin-top:1.5rem">{{ t.s2fa_setup_heading }}</h2>
       <ol style="margin:0.75rem 0 1.25rem 1.25rem;display:flex;flex-direction:column;gap:0.4rem;font-size:0.9rem;color:#3f3f46">
-        <li>Installeer <strong>Google Authenticator</strong> of <strong>Authy</strong> op je smartphone</li>
-        <li>Scan de QR-code hieronder</li>
-        <li>Voer de 6-cijferige code in ter bevestiging</li>
+        <li>{{ t.s2fa_step1 | safe }}</li>
+        <li>{{ t.s2fa_step2 }}</li>
+        <li>{{ t.s2fa_step3 }}</li>
       </ol>
 
       <div style="text-align:center;margin:1.5rem 0">
-        <img src="data:image/png;base64,{{ qr_b64 }}" alt="2FA QR-code"
+        <img src="data:image/png;base64,{{ qr_b64 }}" alt="{{ t.s2fa_qr_alt }}"
              style="width:200px;height:200px;border:4px solid #f4f4f5;border-radius:8px">
       </div>
 
@@ -111,13 +112,13 @@
       <form method="post" action="/settings/2fa/enable" style="display:flex;flex-direction:column;gap:0.875rem">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Verificatiecode</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.s2fa_code_label }}</label>
           <input type="text" name="code" required autofocus
                  inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
                  placeholder="000000" autocomplete="off"
                  style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:1.5rem;letter-spacing:0.3em;text-align:center">
         </div>
-        <button type="submit" class="btn-primary">2FA activeren</button>
+        <button type="submit" class="btn-primary">{{ t.s2fa_activate_btn }}</button>
       </form>
     </section>
 

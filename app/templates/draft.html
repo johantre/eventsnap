@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,28 +9,33 @@
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
   <title>{{ draft.event_title }} – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/" class="back">← Terug</a>
+          <a href="/" class="back">{{ t.nav_back }}</a>
           <h1>{{ draft.event_title }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
@@ -42,10 +47,10 @@
   {% include '_verify_banner.html' %}
   <main>
     {% if request.query_params.get('saved') %}
-    <div class="toast">Opgeslagen ✓</div>
+    <div class="toast">{{ t.draft_saved }}</div>
     {% endif %}
     {% if request.query_params.get('error') %}
-    <div class="toast toast-error">Fout: {{ request.query_params.get('error') }}</div>
+    <div class="toast toast-error">{{ request.query_params.get('error') }}</div>
     {% endif %}
 
     <section class="card">
@@ -54,7 +59,7 @@
         {{ csrf_field(request) | safe }}
         <input type="hidden" name="llm_id" id="regen-llm-id" value="{{ llm.id }}">
         <div class="regen-pills-row">
-          <span class="regen-label">Model:</span>
+          <span class="regen-label">{{ t.draft_model_label }}</span>
           {% for opt in llm_options %}
           <button type="button"
             class="llm-pill regen-pill {% if opt.id == llm.id %}regen-pill--active{% endif %}"
@@ -64,7 +69,7 @@
       </form>
       {% else %}
       <div class="regen-pills-row">
-        <span class="regen-label">Model:</span>
+        <span class="regen-label">{{ t.draft_model_label }}</span>
         <span class="llm-pill" style="background:{{ llm.color }}">{{ llm.id }}</span>
       </div>
       {% endif %}
@@ -73,43 +78,44 @@
         {{ csrf_field(request) | safe }}
         <textarea id="post_text" name="post_text" rows="12">{{ draft.post_text }}</textarea>
         <div class="char-count">
-          <span id="count">0</span> tekens
+          <span id="count">0</span> {{ t.draft_chars }}
           {% if draft.generation_ms %}
           &nbsp;·&nbsp;
           {% set secs = (draft.generation_ms / 1000) | round(1) %}
           {% if draft.generation_ms >= 60000 %}
             {% set mins = (draft.generation_ms // 60000) | int %}
             {% set rem  = ((draft.generation_ms % 60000) / 1000) | round | int %}
-            Gegenereerd in {{ mins }} min {{ rem }} sec
+            {{ t.draft_gen_in }} {{ mins }} {{ t.draft_min }} {{ rem }} {{ t.draft_sec }}
           {% else %}
-            Gegenereerd in {{ secs }} sec
+            {{ t.draft_gen_in }} {{ secs }} {{ t.draft_sec }}
           {% endif %}
           {% endif %}
         </div>
         <div class="actions">
-          <button type="submit" class="btn-primary">Opslaan</button>
-          <button type="button" class="btn-linkedin" onclick="copyAndOpenLinkedIn()">Kopieer &amp; open LinkedIn ↗</button>
-          <span class="linkedin-hint">Plak met Ctrl+V of lang indrukken → Plakken</span>
+          <button type="submit" class="btn-primary">{{ t.draft_save_btn }}</button>
+          <button type="button" class="btn-linkedin" onclick="copyAndOpenLinkedIn()">{{ t.draft_copy_linkedin }}</button>
+          <span class="linkedin-hint">{{ t.draft_paste_hint }}</span>
         </div>
       </form>
     </section>
 
-
-<form method="post" action="/draft/{{ draft.id }}/delete"
-          onsubmit="return confirm('Draft verwijderen?')">
+    <form method="post" action="/draft/{{ draft.id }}/delete"
+          onsubmit="return confirm('{{ t.draft_delete_confirm }}')">
       {{ csrf_field(request) | safe }}
-      <button type="submit" class="btn-delete">Verwijder draft</button>
+      <button type="submit" class="btn-delete">{{ t.draft_delete_btn }}</button>
     </form>
   </main>
 
   <div id="loading-overlay" style="display:none">
     <div class="loading-box">
       <div class="loading-spinner"></div>
-      <p class="loading-text" id="loading-text">Post hergenereren…</p>
+      <p class="loading-text" id="loading-text">{{ t.draft_regenerating }}</p>
     </div>
   </div>
 
   <script>
+    const i18n = { regeneratingWith: "{{ t.draft_regenerating_with }}" };
+
     function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
     document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
 
@@ -120,7 +126,7 @@
           if (this.classList.contains('regen-pill--active')) return;
           const llmId = this.dataset.llm;
           document.getElementById('regen-llm-id').value = llmId;
-          document.getElementById('loading-text').textContent = `Hergenereren met ${llmId}…`;
+          document.getElementById('loading-text').textContent = `${i18n.regeneratingWith} ${llmId}…`;
           document.getElementById('loading-overlay').style.display = 'flex';
           document.querySelectorAll('button, textarea').forEach(el => el.disabled = true);
           regenForm.submit();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,34 +8,39 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Account – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.account_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/" class="back">← Terug</a>
-          <h1>Account</h1>
+          <a href="/" class="back">{{ t.nav_back }}</a>
+          <h1>{{ t.account_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Beheer je accountgegevens.</p>
+      <p>{{ t.account_description }}</p>
     </div>
   </header>
 
@@ -43,96 +48,94 @@
   <main>
 
     {% if request.query_params.get('pw_saved') %}
-    <div class="toast" style="position:static">Wachtwoord succesvol gewijzigd.</div>
+    <div class="toast" style="position:static">{{ t.account_pw_changed }}</div>
     {% endif %}
     {% if request.query_params.get('email_saved') %}
-    <div class="toast" style="position:static">E-mailadres succesvol gewijzigd.</div>
+    <div class="toast" style="position:static">{{ t.account_email_changed }}</div>
     {% endif %}
 
-    <!-- Wachtwoord wijzigen -->
+    <!-- Change password -->
     <div class="card">
-      <h2 class="section-heading">Wachtwoord wijzigen</h2>
+      <h2 class="section-heading">{{ t.account_change_pw_heading }}</h2>
       {% if pw_error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ pw_error }}</div>
       {% endif %}
       <form method="post" action="/account/change-password" style="display:flex;flex-direction:column;gap:0.875rem;margin-top:1rem">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Huidig wachtwoord</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_current_pw }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-cur" name="current_password" required autocomplete="current-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-cur', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-cur', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw wachtwoord <span style="font-weight:400;color:#71717a">(min. 8 tekens)</span></label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_new_pw }} <span style="font-weight:400;color:#71717a">({{ t.account_pw_min }})</span></label>
           <div class="pw-wrap">
             <input type="password" id="pw-new1" name="new_password" required autocomplete="new-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-new1', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new1', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw wachtwoord herhalen</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_new_pw_repeat }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-new2" name="new_password2" required autocomplete="new-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-new2', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new2', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
-        <button type="submit" class="btn-primary" style="align-self:flex-start">Wachtwoord wijzigen</button>
+        <button type="submit" class="btn-primary" style="align-self:flex-start">{{ t.account_change_pw_btn }}</button>
       </form>
     </div>
 
-    <!-- E-mail wijzigen -->
+    <!-- Change email -->
     <div class="card">
-      <h2 class="section-heading">E-mailadres wijzigen</h2>
-      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem">Huidig: <strong>{{ current_user.email }}</strong></p>
+      <h2 class="section-heading">{{ t.account_change_email_heading }}</h2>
+      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem">{{ t.account_current_email_label }} <strong>{{ current_user.email }}</strong></p>
       {% if email_error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem;margin-top:0.75rem">{{ email_error }}</div>
       {% endif %}
       <form method="post" action="/account/change-email" style="display:flex;flex-direction:column;gap:0.875rem;margin-top:1rem">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Nieuw e-mailadres</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_new_email_label }}</label>
           <input type="email" name="new_email" required autocomplete="email"
                  style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Huidig wachtwoord</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_current_pw }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-email" name="current_password" required autocomplete="current-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-email', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-email', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
-        <button type="submit" class="btn-primary" style="align-self:flex-start">E-mail wijzigen</button>
+        <button type="submit" class="btn-primary" style="align-self:flex-start">{{ t.account_change_email_btn }}</button>
       </form>
     </div>
 
-    <!-- Account verwijderen -->
+    <!-- Delete account -->
     <div class="card" style="border:1.5px solid #fca5a5">
-      <h2 class="section-heading" style="border-color:#ef4444;color:#ef4444">Account verwijderen</h2>
-      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem;margin-bottom:1rem">
-        Dit verwijdert je account en alle bijbehorende data (drafts, stijlen, instellingen) permanent.
-      </p>
+      <h2 class="section-heading" style="border-color:#ef4444;color:#ef4444">{{ t.account_delete_heading }}</h2>
+      <p style="font-size:0.85rem;color:#71717a;margin-top:0.25rem;margin-bottom:1rem">{{ t.account_delete_description }}</p>
       {% if delete_error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ delete_error }}</div>
       {% endif %}
       <form method="post" action="/account/delete" style="display:flex;flex-direction:column;gap:0.875rem"
-            onsubmit="return confirm('Weet je zeker dat je je account wilt verwijderen? Dit kan niet ongedaan gemaakt worden.')">
+            onsubmit="return confirm('{{ t.account_delete_confirm }}')">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Bevestig met je wachtwoord</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.account_confirm_pw }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-del" name="current_password" required autocomplete="current-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-del', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-del', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
         <button type="submit" style="align-self:flex-start;background:#ef4444;color:white;border:none;border-radius:8px;padding:0.65rem 1.25rem;font-size:0.9rem;font-weight:600;cursor:pointer">
-          Account permanent verwijderen
+          {{ t.account_delete_btn }}
         </button>
       </form>
     </div>

@@ -22,6 +22,7 @@ from providers.eventbrite import EventbriteProvider
 from providers.meetup import MeetupProvider
 from summary.generator import generate_linkedin_post, test_llm
 from app.mail import send_password_reset, send_verification_email
+from app.translations import TRANSLATIONS
 from app.db import (
     init_db, get_db, get_setting, set_setting,
     get_user_by_id, get_user_by_email, create_user, verify_password,
@@ -59,6 +60,24 @@ def csrf_field(request: Request) -> str:
 
 
 templates.env.globals["csrf_field"] = csrf_field
+
+
+def get_lang(request: Request, user_id: int = None) -> str:
+    """Return active language ('nl' or 'en') for this request."""
+    if user_id:
+        db = get_db()
+        lang = get_setting("language", user_id, default="")
+        db.close()
+        if lang in ("nl", "en"):
+            return lang
+    lang = request.session.get("language", "nl")
+    return lang if lang in ("nl", "en") else "nl"
+
+
+def _tctx(request: Request, user_id: int = None) -> dict:
+    """Return base template context with translations and lang."""
+    lang = get_lang(request, user_id)
+    return {"t": TRANSLATIONS[lang], "lang": lang}
 
 
 async def verify_csrf(request: Request):
@@ -110,7 +129,7 @@ async def get_current_user(request: Request):
 async def login_page(request: Request):
     if request.session.get("user_id"):
         return RedirectResponse("/", status_code=303)
-    return templates.TemplateResponse(request, "login.html")
+    return templates.TemplateResponse(request, "login.html", _tctx(request))
 
 
 @app.post("/login")
@@ -118,10 +137,11 @@ async def login(request: Request, _csrf=Depends(verify_csrf), email: str = Form(
     ip = request.client.host if request.client else "unknown"
     now = _time.time()
     recent = [t for t in _login_attempts.get(ip, []) if now - t < _LOGIN_WINDOW]
+    tr = TRANSLATIONS[get_lang(request)]
     if len(recent) >= _LOGIN_MAX:
         return templates.TemplateResponse(
             request, "login.html",
-            {"error": "Te veel inlogpogingen — probeer het over een minuut opnieuw"},
+            {**_tctx(request), "error": tr["err_too_many_attempts"]},
             status_code=429,
         )
     db = get_db()
@@ -132,7 +152,7 @@ async def login(request: Request, _csrf=Depends(verify_csrf), email: str = Form(
         _login_attempts[ip] = recent
         return templates.TemplateResponse(
             request, "login.html",
-            {"error": "Ongeldig e-mailadres of wachtwoord"},
+            {**_tctx(request), "error": tr["err_invalid_credentials"]},
             status_code=401,
         )
     _login_attempts.pop(ip, None)
@@ -152,6 +172,7 @@ async def login_2fa_page(request: Request):
     user = get_user_by_id(db, user_id)
     db.close()
     return templates.TemplateResponse(request, "login_2fa.html", {
+        **_tctx(request),
         "email": user["email"] if user else "",
     })
 
@@ -170,9 +191,10 @@ async def login_2fa(request: Request, _csrf=Depends(verify_csrf), code: str = Fo
     import pyotp
     totp = pyotp.TOTP(user["totp_secret"])
     if not totp.verify(code.strip(), valid_window=1):
+        tr = TRANSLATIONS[get_lang(request)]
         return templates.TemplateResponse(
             request, "login_2fa.html",
-            {"error": "Ongeldige code — probeer opnieuw"},
+            {**_tctx(request), "email": user["email"], "error": tr["err_invalid_code"]},
             status_code=401,
         )
     request.session.pop("pending_2fa_user_id", None)
@@ -184,7 +206,7 @@ async def login_2fa(request: Request, _csrf=Depends(verify_csrf), code: str = Fo
 async def forgot_password_page(request: Request):
     if request.session.get("user_id"):
         return RedirectResponse("/", status_code=303)
-    return templates.TemplateResponse(request, "forgot_password.html")
+    return templates.TemplateResponse(request, "forgot_password.html", _tctx(request))
 
 
 @app.post("/forgot-password")
@@ -209,7 +231,7 @@ async def forgot_password(request: Request, _csrf=Depends(verify_csrf), email: s
     db.close()
     # Altijd dezelfde boodschap tonen — ook als e-mail niet bestaat
     return templates.TemplateResponse(request, "forgot_password.html", {
-        "sent": True,
+        **_tctx(request), "sent": True,
     })
 
 
@@ -221,28 +243,27 @@ async def reset_password_page(request: Request, token: str = ""):
     row = get_password_reset_token(db, token)
     db.close()
     if not row or row["expires_at"] < _time.strftime("%Y-%m-%d %H:%M:%S", _time.gmtime()):
-        return templates.TemplateResponse(request, "reset_password.html", {"invalid": True})
-    return templates.TemplateResponse(request, "reset_password.html", {"token": token})
+        return templates.TemplateResponse(request, "reset_password.html", {**_tctx(request), "invalid": True})
+    return templates.TemplateResponse(request, "reset_password.html", {**_tctx(request), "token": token})
 
 
 @app.post("/reset-password")
 async def reset_password(request: Request, _csrf=Depends(verify_csrf), token: str = Form(...), new_password: str = Form(...), new_password2: str = Form(...)):
     db = get_db()
     row = get_password_reset_token(db, token)
+    tr = TRANSLATIONS[get_lang(request)]
     if not row or row["expires_at"] < _time.strftime("%Y-%m-%d %H:%M:%S", _time.gmtime()):
         db.close()
-        return templates.TemplateResponse(request, "reset_password.html", {"invalid": True})
+        return templates.TemplateResponse(request, "reset_password.html", {**_tctx(request), "invalid": True})
     if new_password != new_password2:
         db.close()
         return templates.TemplateResponse(request, "reset_password.html", {
-            "token": token,
-            "error": "Wachtwoorden komen niet overeen",
+            **_tctx(request), "token": token, "error": tr["err_passwords_mismatch"],
         }, status_code=400)
     if len(new_password) < 8:
         db.close()
         return templates.TemplateResponse(request, "reset_password.html", {
-            "token": token,
-            "error": "Wachtwoord moet minstens 8 tekens bevatten",
+            **_tctx(request), "token": token, "error": tr["err_password_too_short"],
         }, status_code=400)
     consume_password_reset_token(db, token)
     update_user_password(db, row["user_id"], new_password)
@@ -254,22 +275,23 @@ async def reset_password(request: Request, _csrf=Depends(verify_csrf), token: st
 async def register_page(request: Request):
     if request.session.get("user_id"):
         return RedirectResponse("/", status_code=303)
-    return templates.TemplateResponse(request, "register.html")
+    return templates.TemplateResponse(request, "register.html", _tctx(request))
 
 
 @app.post("/register")
 async def register(request: Request, _csrf=Depends(verify_csrf), email: str = Form(...), password: str = Form(...), password2: str = Form(...)):
     email = email.strip().lower()
+    tr = TRANSLATIONS[get_lang(request)]
     if password != password2:
         return templates.TemplateResponse(
             request, "register.html",
-            {"error": "Wachtwoorden komen niet overeen"},
+            {**_tctx(request), "error": tr["err_passwords_mismatch"]},
             status_code=400,
         )
     if len(password) < 8:
         return templates.TemplateResponse(
             request, "register.html",
-            {"error": "Wachtwoord moet minstens 8 tekens bevatten"},
+            {**_tctx(request), "error": tr["err_password_too_short"]},
             status_code=400,
         )
     db = get_db()
@@ -278,7 +300,7 @@ async def register(request: Request, _csrf=Depends(verify_csrf), email: str = Fo
         db.close()
         return templates.TemplateResponse(
             request, "register.html",
-            {"error": "Dit e-mailadres is al in gebruik"},
+            {**_tctx(request), "error": tr["err_email_in_use"]},
             status_code=400,
         )
     user = create_user(db, email, password)
@@ -306,7 +328,7 @@ async def verify_email(request: Request, token: str = ""):
     row = get_email_verification_token(db, token)
     if not row or row["expires_at"] < _time.strftime("%Y-%m-%d %H:%M:%S", _time.gmtime()):
         db.close()
-        return templates.TemplateResponse(request, "verify_email.html", {"invalid": True})
+        return templates.TemplateResponse(request, "verify_email.html", {**_tctx(request), "invalid": True})
     consume_email_verification_token(db, token)
     mark_email_verified(db, row["user_id"])
     db.close()
@@ -343,6 +365,20 @@ async def logout(request: Request, _csrf=Depends(verify_csrf)):
     return RedirectResponse("/login", status_code=303)
 
 
+@app.post("/language")
+async def set_language(request: Request, _csrf=Depends(verify_csrf), lang: str = Form(...)):
+    if lang not in ("nl", "en"):
+        lang = "nl"
+    request.session["language"] = lang
+    user_id = request.session.get("user_id")
+    if user_id:
+        db = get_db()
+        set_setting("language", lang, user_id)
+        db.close()
+    referer = request.headers.get("referer", "/")
+    return RedirectResponse(referer, status_code=303)
+
+
 def _totp_qr_b64(email: str, secret: str) -> str:
     import pyotp, qrcode, io, base64
     uri = pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name="EventSnap")
@@ -364,7 +400,9 @@ async def settings_2fa_page(request: Request, current_user=Depends(get_current_u
     else:
         qr_b64 = None
         request.session.pop("pending_totp_secret", None)
+    uid = current_user["id"]
     return templates.TemplateResponse(request, "settings_2fa.html", {
+        **_tctx(request, uid),
         "current_user": current_user,
         "totp_enabled": bool(current_user["totp_secret"]),
         "qr_b64": qr_b64,
@@ -379,11 +417,14 @@ async def settings_2fa_enable(request: Request, current_user=Depends(get_current
         return RedirectResponse("/settings/2fa?error=session_expired", status_code=303)
     totp = pyotp.TOTP(secret)
     if not totp.verify(code.strip(), valid_window=1):
+        uid = current_user["id"]
+        tr = TRANSLATIONS[get_lang(request, uid)]
         return templates.TemplateResponse(request, "settings_2fa.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
             "totp_enabled": False,
             "qr_b64": _totp_qr_b64(current_user["email"], secret),
-            "error": "Ongeldige code — scan de QR opnieuw en probeer nog eens",
+            "error": tr["err_invalid_2fa_setup"],
         }, status_code=400)
     db = get_db()
     db.execute("UPDATE users SET totp_secret = ? WHERE id = ?", (secret, current_user["id"]))
@@ -400,11 +441,14 @@ async def settings_2fa_disable(request: Request, current_user=Depends(get_curren
         return RedirectResponse("/settings/2fa", status_code=303)
     totp = pyotp.TOTP(current_user["totp_secret"])
     if not totp.verify(code.strip(), valid_window=1):
+        uid = current_user["id"]
+        tr = TRANSLATIONS[get_lang(request, uid)]
         return templates.TemplateResponse(request, "settings_2fa.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
             "totp_enabled": True,
             "qr_b64": None,
-            "error": "Ongeldige code — 2FA is niet uitgeschakeld",
+            "error": tr["err_invalid_2fa_disable"],
         }, status_code=400)
     db = get_db()
     db.execute("UPDATE users SET totp_secret = NULL WHERE id = ?", (current_user["id"],))
@@ -417,27 +461,29 @@ async def settings_2fa_disable(request: Request, current_user=Depends(get_curren
 # Error handlers
 # ---------------------------------------------------------------------------
 
-def _friendly_error(e: Exception, llm_id: str = None) -> str:
+def _friendly_error(e: Exception, llm_id: str = None, lang: str = "nl") -> str:
+    tr = TRANSLATIONS.get(lang, TRANSLATIONS["nl"])
     raw = str(e).lower()
     prefix = f"{llm_id}: " if llm_id else ""
     if "503" in raw or "unavailable" in raw or "high demand" in raw:
-        return f"{prefix}Model tijdelijk overbelast — probeer opnieuw of kies een ander model"
+        return f"{prefix}{tr['err_model_overloaded']}"
     if "429" in raw or "quota" in raw or "rate limit" in raw:
-        return f"{prefix}Limiet bereikt — je hebt geen credits meer of zit aan de gratis limiet"
+        return f"{prefix}{tr['err_credits_exceeded']}"
     if "401" in raw or "unauthorized" in raw or "invalid api key" in raw:
-        return f"{prefix}Ongeldige API key — controleer je instellingen"
+        return f"{prefix}{tr['err_invalid_api_key']}"
     if "403" in raw or "billing" in raw or "payment" in raw:
-        return f"{prefix}Betalingsgegevens vereist — voeg een betaalmethode toe"
+        return f"{prefix}{tr['err_payment_required']}"
     if "timeout" in raw:
-        return f"{prefix}Verbinding time-out — probeer opnieuw"
+        return f"{prefix}{tr['err_connection_timeout']}"
     import re
     clean = re.sub(r"\{.*\}", "", str(e), flags=re.DOTALL).strip(" .-\n")
-    return f"{prefix}{clean}" if clean else f"{prefix}Onbekende fout"
+    return f"{prefix}{clean}" if clean else f"{prefix}{tr['err_unknown']}"
 
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return templates.TemplateResponse(request, "error.html", {
+        **_tctx(request, request.session.get("user_id")),
         "status": exc.status_code,
         "message": str(exc.detail),
     }, status_code=exc.status_code)
@@ -446,6 +492,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     return templates.TemplateResponse(request, "error.html", {
+        **_tctx(request, request.session.get("user_id")),
         "status": 500,
         "message": str(exc),
     }, status_code=500)
@@ -566,6 +613,7 @@ async def index(request: Request, current_user=Depends(get_current_user)):
     active_llm_id = get_setting("active_llm", uid) or "groq"
     active_llm_opt = next((o for o in LLM_OPTIONS if o["id"] == active_llm_id), LLM_OPTIONS[0])
     return templates.TemplateResponse(request, "index.html", {
+        **_tctx(request, uid),
         "tickets": all_tickets,
         "drafts": drafts,
         "prompts": prompts,
@@ -648,7 +696,7 @@ async def generate(
         except Exception:
             pass
         from urllib.parse import quote
-        return RedirectResponse(f"/?error={quote(_friendly_error(e, active_llm))}", status_code=303)
+        return RedirectResponse(f"/?error={quote(_friendly_error(e, active_llm, get_lang(request, uid)))}", status_code=303)
 
 
 @app.get("/draft/{draft_id}", response_class=HTMLResponse)
@@ -659,7 +707,8 @@ async def edit_draft(request: Request, draft_id: int, current_user=Depends(get_c
     db.close()
     if draft is None:
         from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Draft niet gevonden")
+        tr = TRANSLATIONS[get_lang(request, uid)]
+        raise HTTPException(status_code=404, detail=tr["err_draft_not_found"])
     llm_id = draft["llm"] or "groq"
     configured = []
     for opt in LLM_OPTIONS:
@@ -667,6 +716,7 @@ async def edit_draft(request: Request, draft_id: int, current_user=Depends(get_c
             configured.append(opt)
     llm_opt = next((o for o in configured if o["id"] == llm_id), configured[0] if configured else LLM_OPTIONS[0])
     return templates.TemplateResponse(request, "draft.html", {
+        **_tctx(request, uid),
         "draft": draft,
         "llm": llm_opt,
         "llm_options": configured,
@@ -694,6 +744,7 @@ async def prompts_page(request: Request, current_user=Depends(get_current_user))
     prompts = db.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
     db.close()
     return templates.TemplateResponse(request, "prompts.html", {
+        **_tctx(request, uid),
         "prompts": prompts,
         "current_user": current_user,
     })
@@ -731,7 +782,9 @@ async def delete_prompt(prompt_id: int, request: Request, current_user=Depends(g
 
 @app.get("/account", response_class=HTMLResponse)
 async def account_page(request: Request, current_user=Depends(get_current_user)):
+    uid = current_user["id"]
     return templates.TemplateResponse(request, "account.html", {
+        **_tctx(request, uid),
         "current_user": current_user,
     })
 
@@ -745,20 +798,23 @@ async def change_password(
     new_password: str = Form(...),
     new_password2: str = Form(...),
 ):
+    uid = current_user["id"]
+    tr = TRANSLATIONS[get_lang(request, uid)]
     error = None
     if not verify_password(current_password, current_user["password_hash"]):
-        error = "Huidig wachtwoord is onjuist"
+        error = tr["err_current_password"]
     elif new_password != new_password2:
-        error = "Nieuwe wachtwoorden komen niet overeen"
+        error = tr["err_new_passwords_mismatch"]
     elif len(new_password) < 8:
-        error = "Nieuw wachtwoord moet minstens 8 tekens bevatten"
+        error = tr["err_new_password_too_short"]
     if error:
         return templates.TemplateResponse(request, "account.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
             "pw_error": error,
         }, status_code=400)
     db = get_db()
-    update_user_password(db, current_user["id"], new_password)
+    update_user_password(db, uid, new_password)
     db.close()
     return RedirectResponse("/account?pw_saved=1", status_code=303)
 
@@ -771,27 +827,30 @@ async def change_email(
     current_password: str = Form(...),
     new_email: str = Form(...),
 ):
+    uid = current_user["id"]
+    tr = TRANSLATIONS[get_lang(request, uid)]
     new_email = new_email.strip().lower()
     error = None
     if not verify_password(current_password, current_user["password_hash"]):
-        error = "Huidig wachtwoord is onjuist"
+        error = tr["err_current_password"]
     elif new_email == current_user["email"]:
-        error = "Dit is al je huidige e-mailadres"
+        error = tr["err_same_email"]
     else:
         db = get_db()
         existing = get_user_by_email(db, new_email)
         db.close()
         if existing:
-            error = "Dit e-mailadres is al in gebruik"
+            error = tr["err_email_in_use"]
     if error:
         return templates.TemplateResponse(request, "account.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
             "email_error": error,
         }, status_code=400)
     db = get_db()
-    update_user_email(db, current_user["id"], new_email)
+    update_user_email(db, uid, new_email)
     db.close()
-    request.session["user_id"] = current_user["id"]  # session blijft geldig
+    request.session["user_id"] = uid  # session blijft geldig
     return RedirectResponse("/account?email_saved=1", status_code=303)
 
 
@@ -802,10 +861,13 @@ async def delete_account(
     _csrf=Depends(verify_csrf),
     current_password: str = Form(...),
 ):
+    uid = current_user["id"]
+    tr = TRANSLATIONS[get_lang(request, uid)]
     if not verify_password(current_password, current_user["password_hash"]):
         return templates.TemplateResponse(request, "account.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
-            "delete_error": "Wachtwoord is onjuist — account niet verwijderd",
+            "delete_error": tr["err_delete_wrong_password"],
         }, status_code=400)
     db = get_db()
     delete_user(db, current_user["id"])
@@ -828,6 +890,7 @@ async def admin_users(request: Request, current_user=Depends(get_current_user)):
     kpis = get_admin_kpis(db)
     db.close()
     return templates.TemplateResponse(request, "admin_users.html", {
+        **_tctx(request, current_user["id"]),
         "current_user": current_user,
         "users": users,
         "kpis": kpis,
@@ -851,6 +914,7 @@ async def admin_stats(request: Request, current_user=Depends(get_current_user)):
         for r in llm_stats
     ]
     return templates.TemplateResponse(request, "admin_stats.html", {
+        **_tctx(request, current_user["id"]),
         "current_user": current_user,
         "kpis": kpis,
         "posts_per_day": posts_per_day,
@@ -904,6 +968,7 @@ async def settings_page(request: Request, current_user=Depends(get_current_user)
     current_system_prompt = get_setting("system_prompt", uid)
 
     return templates.TemplateResponse(request, "settings.html", {
+        **_tctx(request, uid),
         "llms": llms,
         "active_llm": active_llm,
         "system_prompt": current_system_prompt,
@@ -1042,7 +1107,7 @@ async def regenerate_draft(draft_id: int, request: Request, current_user=Depends
         except Exception:
             pass
         from urllib.parse import quote
-        return RedirectResponse(f"/draft/{draft_id}?error={quote(_friendly_error(e, llm_id))}", status_code=303)
+        return RedirectResponse(f"/draft/{draft_id}?error={quote(_friendly_error(e, llm_id, get_lang(request, uid)))}", status_code=303)
 
 
 @app.post("/draft/{draft_id}/delete")
@@ -1104,13 +1169,15 @@ async def from_url_get(request: Request, current_user=Depends(get_current_user),
                 None, lambda: _scrape_url(target_url)
             )
         except Exception as e:
-            error = f"Pagina ophalen mislukt: {e}"
+            tr = TRANSLATIONS[get_lang(request, uid)]
+        error = f"{tr['err_fetch_failed']} {e}"
 
     db = get_db()
     prompts = db.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
     db.close()
 
     return templates.TemplateResponse(request, "from_url.html", {
+        **_tctx(request, uid),
         "current_user": current_user,
         "target_url": target_url,
         "page_title": page_title,
@@ -1194,12 +1261,14 @@ Paginatekst:
         db2 = get_db()
         prompts_list = db2.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()
         db2.close()
-        from urllib.parse import quote
+        lang = get_lang(request, uid)
+        tr = TRANSLATIONS[lang]
         return templates.TemplateResponse(request, "from_url.html", {
+            **_tctx(request, uid),
             "current_user": current_user,
             "target_url": target_url,
             "page_title": page_title,
             "page_text": page_text,
             "prompts": prompts_list,
-            "error": f"Generatie mislukt: {_friendly_error(e, active_llm)}",
+            "error": f"{tr['err_generation_failed']} {_friendly_error(e, active_llm, lang)}",
         }, status_code=500)

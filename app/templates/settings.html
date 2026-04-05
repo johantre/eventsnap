@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,41 +8,46 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Instellingen – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=18">
+  <title>{{ t.settings_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/" class="back">← Terug</a>
-          <h1>Instellingen</h1>
+          <a href="/" class="back">{{ t.nav_back }}</a>
+          <h1>{{ t.settings_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Configureer je event providers en taalmodel.</p>
+      <p>{{ t.settings_description }}</p>
     </div>
   </header>
 
   {% include '_verify_banner.html' %}
   <main>
     {% if request.query_params.get('saved') %}
-    <div class="toast">Opgeslagen ✓</div>
+    <div class="toast">{{ t.settings_saved }}</div>
     {% endif %}
     {% if request.query_params.get('test_id') %}
       {% if request.query_params.get('test_ok') == '1' %}
@@ -53,21 +58,21 @@
     {% endif %}
 
     <section class="card">
-      <h2 class="section-heading">Beveiliging</h2>
-      <p class="section-sub">Bescherm je account met twee-staps verificatie (2FA).</p>
+      <h2 class="section-heading">{{ t.settings_security_heading }}</h2>
+      <p class="section-sub">{{ t.settings_security_description }}</p>
       <a href="/settings/2fa" class="btn-copy" style="display:inline-block;margin-top:0.75rem;text-decoration:none">
-        Twee-staps verificatie beheren →
+        {{ t.settings_2fa_link }}
       </a>
     </section>
 
     <section class="card">
       <form method="post" action="/settings">
         {{ csrf_field(request) | safe }}
-        <h2 class="section-heading">System prompt</h2>
-        <p class="section-sub">De basisinstructies die meegegeven worden aan het taalmodel bij elke generatie.</p>
+        <h2 class="section-heading">{{ t.settings_system_prompt_heading }}</h2>
+        <p class="section-sub">{{ t.settings_system_prompt_description }}</p>
         <textarea name="system_prompt" rows="16" style="font-size:0.82rem; line-height:1.5; font-family: monospace">{{ system_prompt or default_system_prompt }}</textarea>
         <div style="margin-top:1rem">
-          <button type="submit" class="btn-primary btn-save" disabled>Opslaan</button>
+          <button type="submit" class="btn-primary btn-save" disabled>{{ t.settings_save_btn }}</button>
         </div>
       </form>
     </section>
@@ -75,21 +80,21 @@
     <section class="card">
       <form method="post" action="/settings">
         {{ csrf_field(request) | safe }}
-        <h2 class="section-heading">Event providers</h2>
-        <p class="section-sub">Verbind je ticketplatforms om je events op te halen.</p>
+        <h2 class="section-heading">{{ t.settings_providers_heading }}</h2>
+        <p class="section-sub">{{ t.settings_providers_description }}</p>
 
         <div class="provider-block">
           <div class="provider-header">
             <span class="provider-name">Collective / Wintercircus</span>
-            {% if collective.ok %}<span class="llm-badge">✓ geconfigureerd</span>
-            {% else %}<span class="llm-badge llm-badge-missing">niet geconfigureerd</span>{% endif %}
+            {% if collective.ok %}<span class="llm-badge">{{ t.settings_configured }}</span>
+            {% else %}<span class="llm-badge llm-badge-missing">{{ t.settings_not_configured }}</span>{% endif %}
           </div>
           <div class="prompt-field">
             <label class="url-label-row">
               URL
               <button type="button" class="btn-reset-url"
                 onclick="resetCollectiveUrl()"
-                title="Reset naar default">↺ Reset</button>
+                title="Reset naar default">{{ t.settings_reset_btn }}</button>
             </label>
             <input type="text" id="collective_url" name="collective_url"
               value="{{ collective.url }}"
@@ -98,13 +103,13 @@
 
           <div id="reset-modal" class="modal-backdrop" style="display:none" onclick="closeResetModal(event)">
             <div class="modal-box">
-              <p class="modal-title">URL resetten naar default?</p>
-              <p class="modal-body">De waarde wordt teruggezet naar:<br>
+              <p class="modal-title">{{ t.settings_reset_confirm_title }}</p>
+              <p class="modal-body">{{ t.settings_reset_confirm_body }}<br>
                 <code id="reset-url-display"></code>
               </p>
               <div class="modal-actions">
-                <button type="button" class="btn-primary" onclick="confirmReset()">Reset</button>
-                <button type="button" class="btn-copy" onclick="document.getElementById('reset-modal').style.display='none'">Annuleer</button>
+                <button type="button" class="btn-primary" onclick="confirmReset()">{{ t.settings_reset_confirm_btn }}</button>
+                <button type="button" class="btn-copy" onclick="document.getElementById('reset-modal').style.display='none'">{{ t.settings_cancel_btn }}</button>
               </div>
             </div>
           </div>
@@ -115,10 +120,10 @@
               onfocus="this.removeAttribute('readonly')">
           </div>
           <div class="prompt-field">
-            <label>Wachtwoord</label>
+            <label>{{ t.pw_label }}</label>
             <input type="password" name="collective_password" autocomplete="new-password" readonly
               onfocus="this.removeAttribute('readonly')"
-              placeholder="{% if collective.password_set %}Laat leeg om huidig wachtwoord te bewaren{% else %}Wachtwoord invoeren{% endif %}">
+              placeholder="{% if collective.password_set %}{{ t.settings_pw_leave_empty }}{% else %}{{ t.settings_pw_enter }}{% endif %}">
           </div>
         </div>
 
@@ -128,15 +133,15 @@
           </div>
           <div class="llm-key-row">
             <input type="password" name="eventbrite_token" autocomplete="off"
-              placeholder="{% if eventbrite_ok %}Laat leeg om huidige token te bewaren{% else %}Plak hier je Private token{% endif %}">
+              placeholder="{% if eventbrite_ok %}{{ t.settings_token_leave_empty }}{% else %}{{ t.settings_token_paste }}{% endif %}">
             <div class="llm-meta">
               <span class="llm-badge {% if not eventbrite_ok %}llm-badge-missing{% endif %}">
-                {% if eventbrite_ok %}✓ geconfigureerd{% else %}niet geconfigureerd{% endif %}
+                {% if eventbrite_ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
               </span>
-              <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+              <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">{{ t.settings_get_key }}</a>
             </div>
           </div>
-          <p class="provider-hint">Gebruik de <strong>Private token</strong> — niet de API key, Public token of Client secret.</p>
+          <p class="provider-hint">{{ t.settings_eventbrite_hint | safe }}</p>
         </div>
 
         <div class="provider-block">
@@ -145,18 +150,18 @@
           </div>
           <div class="llm-key-row">
             <input type="password" name="meetup_token" autocomplete="off"
-              placeholder="{% if meetup_ok %}Laat leeg om huidige token te bewaren{% else %}Plak hier je OAuth bearer token{% endif %}">
+              placeholder="{% if meetup_ok %}{{ t.settings_token_leave_empty }}{% else %}Plak hier je OAuth bearer token{% endif %}">
             <div class="llm-meta">
               <span class="llm-badge {% if not meetup_ok %}llm-badge-missing{% endif %}">
-                {% if meetup_ok %}✓ geconfigureerd{% else %}niet geconfigureerd{% endif %}
+                {% if meetup_ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
               </span>
-              <a href="https://secure.meetup.com/oauth2/authorize" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+              <a href="https://secure.meetup.com/oauth2/authorize" target="_blank" class="llm-key-link">{{ t.settings_get_key }}</a>
             </div>
           </div>
         </div>
 
         <div style="margin-top:1.25rem">
-          <button type="submit" class="btn-primary btn-save" disabled>Opslaan</button>
+          <button type="submit" class="btn-primary btn-save" disabled>{{ t.settings_save_btn }}</button>
         </div>
       </form>
     </section>
@@ -164,8 +169,8 @@
     <section class="card">
       <form method="post" action="/settings">
         {{ csrf_field(request) | safe }}
-        <h2 class="section-heading">Taalmodel (LLM)</h2>
-        <p class="section-sub">Kies welk AI-model je posts genereert.</p>
+        <h2 class="section-heading">{{ t.settings_llm_heading }}</h2>
+        <p class="section-sub">{{ t.settings_llm_description }}</p>
 
         {% for llm in llms %}
         <label class="llm-option {% if llm.has_key %}llm-available{% endif %}" id="llm-option-{{ llm.id }}">
@@ -185,15 +190,15 @@
           <div class="llm-key-row">
             <div class="key-input-wrap" id="wrap-{{ llm.id }}">
               <input type="password" id="key-{{ llm.id }}"
-                placeholder="{% if llm.has_key %}Nieuwe key plakken om te vervangen{% else %}Plak hier je API key{% endif %}"
+                placeholder="{% if llm.has_key %}{{ t.settings_key_replace }}{% else %}{{ t.settings_key_paste }}{% endif %}"
                 autocomplete="off" data-llm="{{ llm.id }}">
               <span class="key-status" id="status-{{ llm.id }}"></span>
             </div>
             <div class="llm-meta">
               <span class="llm-badge llm-key-badge" id="badge-{{ llm.id }}">
-                {% if llm.has_key %}✓ geconfigureerd{% else %}geen key{% endif %}
+                {% if llm.has_key %}{{ t.settings_configured }}{% else %}{{ t.settings_no_key }}{% endif %}
               </span>
-              <a href="{{ llm.url }}" target="_blank" class="llm-key-link">Key ophalen ↗</a>
+              <a href="{{ llm.url }}" target="_blank" class="llm-key-link">{{ t.settings_get_key }}</a>
             </div>
           </div>
           <p class="key-msg" id="msg-{{ llm.id }}"></p>
@@ -201,22 +206,22 @@
         {% endfor %}
 
         <div style="margin-top:1.25rem">
-          <button type="submit" class="btn-primary btn-save" disabled>Actief model opslaan</button>
+          <button type="submit" class="btn-primary btn-save" disabled>{{ t.settings_save_llm_btn }}</button>
         </div>
       </form>
     </section>
 
     <section class="card">
-      <h2 class="section-heading">Genereer vanuit een webpagina</h2>
-      <p class="section-sub">Haal sessie-inhoud op van eender welke agenda- of conferentiepagina en genereer er meteen een LinkedIn post mee.</p>
+      <h2 class="section-heading">{{ t.settings_from_page_heading }}</h2>
+      <p class="section-sub">{{ t.settings_from_page_description }}</p>
 
       <!-- SETUP -->
-      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">Eenmalige setup</p>
+      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">{{ t.settings_setup_heading }}</p>
 
       <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — bookmarklet</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_desktop_bookmarklet }}</p>
         <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.6rem 0">
-          <strong>Rechtermuisknop</strong> op de knop hieronder → <strong>Bladwijzer voor deze link</strong> (of "Bookmark this link"):
+          {{ t.settings_bookmarklet_instruction | safe }}
         </p>
         <a href="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
            id="bookmarklet-link"
@@ -225,84 +230,93 @@
           📋 EventSnap
         </a>
         <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">
-          Werkt slepen toch beter? Probeer het vanuit Firefox — dat ondersteunt slepen van <code>javascript:</code> links wel.
+          {{ t.settings_bookmarklet_drag | safe }}
         </p>
         <details style="margin-top:0.5rem">
-          <summary style="font-size:0.75rem;color:#71717a;cursor:pointer">Manueel aanmaken (alternatief)</summary>
+          <summary style="font-size:0.75rem;color:#71717a;cursor:pointer">{{ t.settings_bookmarklet_manual }}</summary>
           <ol style="font-size:0.75rem;color:#71717a;margin:0.4rem 0 0 1rem;padding:0;line-height:1.7">
-            <li>Maak een nieuwe bladwijzer aan (rechtermuisknop op bookmarksbalk → <em>Bladwijzer toevoegen</em>)</li>
-            <li>Geef hem de naam <strong>EventSnap</strong></li>
-            <li>Kopieer de code hieronder en plak die in het URL-veld</li>
+            <li>{{ t.settings_bookmarklet_step1 | safe }}</li>
+            <li>{{ t.settings_bookmarklet_step2 | safe }}</li>
+            <li>{{ t.settings_bookmarklet_step3 }}</li>
           </ol>
           <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem">
             <input id="bm-code" type="text" readonly
               value="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
               style="flex:1;font-size:0.7rem;font-family:monospace;padding:0.3rem 0.5rem;border:1px solid #d4d4d8;border-radius:4px;color:#3f3f46;background:#fafafa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            <button onclick="var el=document.getElementById('bm-code');el.select();navigator.clipboard.writeText(el.value);this.textContent='✓ Gekopieerd';setTimeout(()=>this.textContent='Kopieer',2000)"
-              style="padding:0.3rem 0.6rem;font-size:0.75rem;background:#0a66c2;color:#fff;border:none;border-radius:4px;cursor:pointer;white-space:nowrap">Kopieer</button>
+            <button id="bm-copy-btn"
+              onclick="var el=document.getElementById('bm-code');el.select();navigator.clipboard.writeText(el.value);this.textContent=i18n.copied;setTimeout(()=>this.textContent=i18n.copy,2000)"
+              style="padding:0.3rem 0.6rem;font-size:0.75rem;background:#0a66c2;color:#fff;border:none;border-radius:4px;cursor:pointer;white-space:nowrap">{{ t.settings_copy_btn }}</button>
           </div>
         </details>
-        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">Geen bookmarksbalk? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
+        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">{{ t.settings_no_bookmarks_bar }}</p>
       </div>
 
       <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">📱 Android</p>
-        <p style="font-size:0.82rem;color:#71717a;margin:0">Open deze pagina in Chrome → drie puntjes → <strong>App installeren</strong> of <strong>Toevoegen aan startscherm</strong>.</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_android_label }}</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0">{{ t.settings_android_setup | safe }}</p>
       </div>
 
       <div style="margin-bottom:1.5rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">🍎 iOS (Safari)</p>
-        <p style="font-size:0.82rem;color:#71717a;margin:0">Open deze pagina in Safari → tik het Delen-icoontje → <strong>Zet op beginscherm</strong>.</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_ios_label }}</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0">{{ t.settings_ios_setup | safe }}</p>
       </div>
 
       <!-- GEBRUIK -->
-      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">Dagelijks gebruik</p>
+      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">{{ t.settings_daily_heading }}</p>
 
       <p style="font-size:0.82rem;color:#52525b;margin-bottom:1rem">
-        EventSnap haalt automatisch de <strong>titel</strong> op (eerste regel van je selectie) en toont alles als bewerkbaar tekstveld — je kan altijd nog bijsturen vóór je genereert.
+        {{ t.settings_bookmarklet_note | safe }}
       </p>
 
       <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — bookmarklet (aanbevolen)</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_desktop_recommended }}</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
-          <li>Ga naar een agenda- of sessiepagina</li>
-          <li>Selecteer de sessietekst (titel + beschrijving + spreker)</li>
-          <li>Klik op de <em>EventSnap</em> bookmark in je bookmarksbalk</li>
+          <li>{{ t.settings_step_goto }}</li>
+          <li>{{ t.settings_step_select }}</li>
+          <li>{{ t.settings_step_click | safe }}</li>
         </ol>
-        <p style="font-size:0.82rem;color:#71717a;margin:0.4rem 0 0 0">Geen selectie? Dan stuurt de bookmark de URL door en haalt EventSnap de volledige pagina op.</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0.4rem 0 0 0">{{ t.settings_no_selection }}</p>
       </div>
 
       <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — plakken (alternatief)</p>
-        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.4rem 0">Handig als tekst in een popup staat of de bookmarklet niet beschikbaar is:</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_desktop_paste }}</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.4rem 0">{{ t.settings_paste_when }}</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
-          <li>Selecteer en kopieer de sessietekst (Ctrl+C)</li>
-          <li>Open <a href="/from-url" target="_blank" style="color:#0a66c2">Genereer vanuit pagina</a></li>
-          <li>Klik op <strong>📋 Plakken</strong></li>
+          <li>{{ t.settings_step_copy_text }}</li>
+          <li>{{ t.settings_step_open_page }} <a href="/from-url" target="_blank" style="color:#0a66c2">{{ t.settings_from_page_heading }}</a></li>
+          <li>{{ t.settings_step_click_paste | safe }}</li>
         </ol>
       </div>
 
       <div style="margin-bottom:1.25rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">📱 Android</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_android_label }}</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
-          <li>Ga naar een agenda-pagina in je browser</li>
-          <li><strong>Tekst:</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
-          <li><strong>URL:</strong> tik de drie puntjes → <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li>{{ t.settings_android_step1 }}</li>
+          <li>{{ t.settings_android_text_step | safe }}</li>
+          <li>{{ t.settings_android_url_step | safe }}</li>
         </ol>
       </div>
 
       <div>
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">🍎 iOS (Safari)</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">{{ t.settings_ios_label }}</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
-          <li>Ga naar een agenda-pagina</li>
-          <li><strong>Tekst:</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
-          <li><strong>URL:</strong> tik het Delen-icoontje → kies <strong>EventSnap</strong></li>
+          <li>{{ t.settings_ios_step1 }}</li>
+          <li>{{ t.settings_android_text_step | safe }}</li>
+          <li>{{ t.settings_android_url_step | safe }}</li>
         </ol>
       </div>
     </section>
 
   </main>
   <script>
+    const i18n = {
+      saved: "{{ t.settings_saved }}",
+      configured: "{{ t.settings_configured }}",
+      connectionFailed: "{{ t.settings_connection_failed }}",
+      copied: "{{ t.settings_copied_btn }}",
+      copy: "{{ t.settings_copy_btn }}"
+    };
+
     function toggleMenu() { document.getElementById('nav-menu').classList.toggle('open'); }
     document.addEventListener('click', e => { if (!document.getElementById('hamburger').contains(e.target)) document.getElementById('nav-menu').classList.remove('open'); });
 
@@ -330,9 +344,9 @@
         if (data.ok) {
           wrap.classList.add('key-valid');
           statusEl.textContent = '✓';
-          msgEl.textContent = 'Opgeslagen ✓';
+          msgEl.textContent = i18n.saved;
           msgEl.className = 'key-msg key-msg-ok';
-          badgeEl.textContent = '✓ geconfigureerd';
+          badgeEl.textContent = i18n.configured;
           badgeEl.classList.remove('llm-badge-missing');
         } else {
           wrap.classList.add('key-invalid');
@@ -344,7 +358,7 @@
         wrap.classList.remove('key-testing');
         wrap.classList.add('key-invalid');
         statusEl.textContent = '✗';
-        msgEl.textContent = 'Verbinding mislukt';
+        msgEl.textContent = i18n.connectionFailed;
         msgEl.className = 'key-msg key-msg-err';
       }
     }
@@ -387,7 +401,6 @@
     document.querySelectorAll('form[action="/settings"]').forEach(form => {
       const saveBtn = form.querySelector('.btn-save');
       if (!saveBtn) return;
-      const snapshot = () => new FormData(form);
       let initial = [...new FormData(form).entries()].map(([k,v]) => k+'='+v).join('&');
       form.addEventListener('input', () => {
         const current = [...new FormData(form).entries()].map(([k,v]) => k+'='+v).join('&');

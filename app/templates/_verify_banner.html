@@ -1,10 +1,10 @@
 {% if current_user and not current_user.email_verified %}
 <div style="background:#fef3c7;border-bottom:1px solid #fcd34d;padding:0.6rem 1rem;text-align:center;font-size:0.85rem;color:#92400e">
-  📧 Bevestig je e-mailadres <strong>{{ current_user.email }}</strong> — check je inbox.
+  {{ t.verify_banner_prefix }} <strong>{{ current_user.email }}</strong> {{ t.verify_banner_suffix }}
   <form method="post" action="/resend-verification" style="display:inline;margin-left:0.75rem">
     {{ csrf_field(request) | safe }}
     <button type="submit" style="background:none;border:none;color:#0a66c2;font-weight:600;cursor:pointer;font-size:0.85rem;padding:0;text-decoration:underline">
-      Opnieuw versturen
+      {{ t.verify_resend }}
     </button>
   </form>
 </div>

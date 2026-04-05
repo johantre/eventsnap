@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,34 +8,39 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Genereer vanuit pagina – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.from_url_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/" class="back">← Terug</a>
-          <h1>Genereer vanuit pagina</h1>
+          <a href="/" class="back">{{ t.nav_back }}</a>
+          <h1>{{ t.from_url_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Kopieer sessie-inhoud en genereer een LinkedIn post.</p>
+      <p>{{ t.from_url_subheading }}</p>
     </div>
   </header>
 
@@ -52,37 +57,37 @@
       <!-- Primary: paste button -->
       <div style="text-align:center;padding:1.5rem 0 1rem">
         <p style="font-size:0.9rem;color:#52525b;margin-bottom:1rem">
-          Kopieer tekst van een sessie-pagina (Ctrl+C / lang indrukken → Kopiëren)<br>
-          en klik daarna op de knop:
+          {{ t.from_url_paste_instruction }}<br>
+          {{ t.from_url_paste_instruction2 }}
         </p>
         <button type="button" class="btn-primary" id="paste-btn" onclick="pasteFromClipboard()" style="font-size:1.1rem;padding:0.75rem 2rem">
-          📋 Plakken
+          {{ t.from_url_paste_btn }}
         </button>
         <p id="paste-error" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none">
-          Geen toegang tot klembord — plak de tekst manueel hieronder.
+          {{ t.from_url_no_clipboard }}
         </p>
         <p id="paste-empty" style="color:#f59e0b;font-size:0.82rem;margin-top:0.5rem;display:none">
-          Klembord is leeg of de pagina blokkeert kopiëren. Probeer de <strong>URL-optie</strong> hieronder.
+          {{ t.from_url_clipboard_empty }}
         </p>
       </div>
 
       <!-- Editable text area (shown after paste, or as manual fallback) -->
       <div id="manual-area" style="display:none;margin-top:0.5rem">
         <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">
-          Tekst (bewerkbaar)
+          {{ t.from_url_text_label }}
         </label>
         <textarea id="pasted-text" rows="8"
-          placeholder="Plak hier de sessietekst..."
+          placeholder="{{ t.from_url_text_placeholder }}"
           style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.9rem;resize:vertical"></textarea>
         <button type="button" class="btn-primary" onclick="useText()" style="margin-top:0.75rem">
-          Gebruik deze tekst →
+          {{ t.from_url_use_text_btn }}
         </button>
       </div>
 
       <!-- Divider -->
       <div style="display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0">
         <hr style="flex:1;border:none;border-top:1px solid #e4e4e7">
-        <span style="font-size:0.8rem;color:#a1a1aa">of via URL</span>
+        <span style="font-size:0.8rem;color:#a1a1aa">{{ t.from_url_or_url }}</span>
         <hr style="flex:1;border:none;border-top:1px solid #e4e4e7">
       </div>
 
@@ -91,7 +96,7 @@
         <input type="url" name="url" value="{{ target_url }}"
                placeholder="https://sessionize.com/mijn-event/"
                style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem;margin-bottom:0.75rem">
-        <button type="submit" class="btn-primary" style="background:#71717a">Ophalen via URL</button>
+        <button type="submit" class="btn-primary" style="background:#71717a">{{ t.from_url_fetch_btn }}</button>
       </form>
     </section>
 
@@ -103,13 +108,13 @@
         <input type="hidden" name="page_text" value="{{ page_text }}" id="f-text">
 
         <div style="margin-bottom:0.75rem">
-          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Titel (bewerkbaar)</label>
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">{{ t.from_url_title_label }}</label>
           <input type="text" name="page_title" id="f-title" value="{{ page_title }}"
             style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem">
         </div>
 
         <div style="margin-bottom:0.75rem">
-          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Inhoud (bewerkbaar)</label>
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">{{ t.from_url_content_label }}</label>
           <textarea id="preview-text" rows="8"
             style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.85rem;color:#52525b;resize:vertical"
             oninput="document.getElementById('f-text').value=this.value">{{ page_text }}</textarea>
@@ -117,9 +122,9 @@
 
         {% if prompts %}
         <div style="margin-bottom:0.75rem">
-          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Stijl</label>
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">{{ t.from_url_style_label }}</label>
           <select name="prompt_id" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem">
-            <option value="">— Geen stijl —</option>
+            <option value="">{{ t.from_url_no_style }}</option>
             {% for p in prompts %}
             <option value="{{ p.id }}">{{ p.title }}</option>
             {% endfor %}
@@ -128,14 +133,14 @@
         {% endif %}
 
         <div style="margin-bottom:0.75rem">
-          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">Aanvullende instructies (optioneel)</label>
-          <textarea name="user_prompt" rows="2" placeholder="Bv. focus op de keynote sprekers..."
+          <label style="font-size:0.85rem;font-weight:600;color:#52525b;display:block;margin-bottom:0.4rem">{{ t.from_url_instructions_label }}</label>
+          <textarea name="user_prompt" rows="2" placeholder="{{ t.from_url_instructions_placeholder }}"
             style="width:100%;box-sizing:border-box;padding:0.6rem 0.75rem;border:1px solid #e4e4e7;border-radius:8px;font-size:0.95rem;resize:vertical"></textarea>
         </div>
 
         <div class="actions">
-          <button type="submit" class="btn-primary" onclick="showLoading()">Genereer post</button>
-          <button type="button" onclick="resetPage()" style="background:none;border:none;color:#71717a;cursor:pointer;font-size:0.9rem">← Opnieuw beginnen</button>
+          <button type="submit" class="btn-primary" onclick="showLoading()">{{ t.from_url_generate_btn }}</button>
+          <button type="button" onclick="resetPage()" style="background:none;border:none;color:#71717a;cursor:pointer;font-size:0.9rem">{{ t.from_url_restart }}</button>
         </div>
       </form>
     </section>
@@ -144,7 +149,7 @@
   <div id="loading-overlay" style="display:none">
     <div class="loading-box">
       <div class="loading-spinner"></div>
-      <p class="loading-text">Post genereren…</p>
+      <p class="loading-text">{{ t.from_url_generating }}</p>
     </div>
   </div>
 
@@ -154,10 +159,8 @@
 
     function showLoading() {
       document.getElementById('loading-overlay').style.display = 'flex';
-      // Defer disabling until after the form has submitted (fixes Chrome cancelling submit on disabled button)
       setTimeout(() => {
         document.querySelectorAll('button, textarea, select').forEach(el => el.disabled = true);
-        // Hidden inputs must NOT be disabled — disabled fields are excluded from form data
       }, 0);
     }
 
@@ -175,7 +178,6 @@
           document.getElementById('paste-empty').style.display = '';
         }
       } catch (e) {
-        // No clipboard access — show manual textarea
         showManualArea();
         document.getElementById('paste-error').style.display = '';
       }
@@ -196,7 +198,6 @@
       document.getElementById('gen-section').style.display = '';
       document.getElementById('f-text').value = text;
       document.getElementById('preview-text').value = text;
-      // Auto-fill title from first non-empty line (mirrors server-side logic)
       const titleEl = document.getElementById('f-title');
       if (!titleEl.value.trim()) {
         const firstLine = text.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';

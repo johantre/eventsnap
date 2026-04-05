@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <title>Inloggen – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.login_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,20 +13,25 @@
     <div class="header-inner">
       <div class="header-top">
         <h1 class="brand-title">EventSnap</h1>
+        <form method="post" action="/language" style="margin:0">
+          {{ csrf_field(request) | safe }}
+          <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+          <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+        </form>
       </div>
-      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+      <p>{{ t.tagline }}</p>
     </div>
   </header>
 
   <main>
     <div class="card">
-      <h2 style="margin-bottom:1.25rem">Inloggen</h2>
+      <h2 style="margin-bottom:1.25rem">{{ t.login_heading }}</h2>
 
       {% if request.query_params.get('reset') %}
-      <div class="toast" style="position:static;margin-bottom:1rem">Wachtwoord opgeslagen — je kan nu inloggen.</div>
+      <div class="toast" style="position:static;margin-bottom:1rem">{{ t.login_password_saved }}</div>
       {% endif %}
       {% if request.query_params.get('deleted') %}
-      <div class="toast" style="position:static;margin-bottom:1rem">Je account is verwijderd.</div>
+      <div class="toast" style="position:static;margin-bottom:1rem">{{ t.login_account_deleted }}</div>
       {% endif %}
       {% if error %}
       <div class="toast toast-error" style="position:static;margin-bottom:1rem">{{ error }}</div>
@@ -35,26 +40,26 @@
       <form method="post" action="/login" style="display:flex;flex-direction:column;gap:0.875rem">
         {{ csrf_field(request) | safe }}
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">E-mailadres</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.email_label }}</label>
           <input type="email" name="email" required autocomplete="email"
                  style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
         </div>
         <div>
-          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">Wachtwoord</label>
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem">{{ t.pw_label }}</label>
           <div class="pw-wrap">
             <input type="password" id="pw-login" name="password" required autocomplete="current-password"
                    style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #d4d4d8;border-radius:8px;font-size:0.95rem">
-            <button type="button" class="pw-toggle" onclick="togglePw('pw-login', this)" aria-label="Toon wachtwoord">👁</button>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-login', this)" aria-label="{{ t.show_pw }}">👁</button>
           </div>
         </div>
-        <button type="submit" class="btn-primary" style="margin-top:0.25rem">Inloggen</button>
+        <button type="submit" class="btn-primary" style="margin-top:0.25rem">{{ t.login_btn }}</button>
       </form>
 
       <p style="margin-top:0.75rem;font-size:0.85rem;text-align:center">
-        <a href="/forgot-password" style="color:#71717a">Wachtwoord vergeten?</a>
+        <a href="/forgot-password" style="color:#71717a">{{ t.login_forgot }}</a>
       </p>
       <p style="margin-top:0.5rem;font-size:0.85rem;text-align:center;color:#71717a">
-        Nog geen account? <a href="/register" style="color:#0a66c2;font-weight:600">Registreren</a>
+        {{ t.login_no_account }} <a href="/register" style="color:#0a66c2;font-weight:600">{{ t.login_register_link }}</a>
       </p>
     </div>
   </main>

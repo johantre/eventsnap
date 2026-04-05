@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,34 +8,39 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>Stijlen – EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.prompts_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div class="header-top">
         <div>
-          <a href="/" class="back">← Terug</a>
-          <h1>Stijlen beheren</h1>
+          <a href="/" class="back">{{ t.nav_back }}</a>
+          <h1>{{ t.prompts_heading }}</h1>
         </div>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Sla je favoriete post-stijlen op om snel te hergebruiken.</p>
+      <p>{{ t.prompts_description }}</p>
     </div>
   </header>
 
@@ -43,28 +48,28 @@
   <main>
     <section class="card">
       <div class="prompt-header">
-        <h2 id="form-title">Nieuwe stijl</h2>
-        <button type="button" class="btn-copy" id="btn-new" style="display:none" onclick="resetForm()">+ Nieuw</button>
+        <h2 id="form-title">{{ t.prompts_new_heading }}</h2>
+        <button type="button" class="btn-copy" id="btn-new" style="display:none" onclick="resetForm()">{{ t.prompts_new_btn }}</button>
       </div>
 
       <form method="post" id="prompt-form" action="/prompts">
         {{ csrf_field(request) | safe }}
         <input type="hidden" id="edit-id" name="_id" value="">
         <div class="prompt-field">
-          <label for="title">Naam</label>
-          <input type="text" id="title" name="title" placeholder="bv. Grappige post" required>
+          <label for="title">{{ t.prompts_name_label }}</label>
+          <input type="text" id="title" name="title" placeholder="{{ t.prompts_name_placeholder }}" required>
         </div>
         <div class="prompt-field">
-          <label for="prompt_text">Instructies voor de LLM</label>
+          <label for="prompt_text">{{ t.prompts_instructions_label }}</label>
           <textarea id="prompt_text" name="prompt_text" rows="6"
-            placeholder="bv. Schrijf een luchtige, grappige post met een knipoog..."></textarea>
+            placeholder="{{ t.prompts_instructions_placeholder }}"></textarea>
         </div>
         <div style="display:flex; gap:0.75rem; align-items:center">
-          <button type="submit" class="btn-primary">Opslaan</button>
+          <button type="submit" class="btn-primary">{{ t.prompts_save_btn }}</button>
           <form method="post" id="delete-form" action="" style="margin:0">
             {{ csrf_field(request) | safe }}
             <button type="submit" class="btn-delete" id="btn-delete" style="display:none"
-              onclick="return confirm('Stijl verwijderen?')">Verwijder</button>
+              onclick="return confirm('{{ t.prompts_delete_confirm }}')">{{ t.prompts_delete_btn }}</button>
           </form>
         </div>
       </form>
@@ -72,7 +77,7 @@
 
     {% if prompts %}
     <section class="card">
-      <h2>Opgeslagen stijlen</h2>
+      <h2>{{ t.prompts_saved_heading }}</h2>
       <div class="prompt-list">
         {% for p in prompts %}
         <button type="button" class="prompt-list-item" id="btn-{{ p.id }}"
@@ -104,7 +109,6 @@
       document.getElementById('btn-delete').style.display = '';
       document.getElementById('btn-new').style.display = '';
 
-      // Highlight selected
       document.querySelectorAll('.prompt-list-item').forEach(b => b.classList.remove('prompt-list-item--active'));
       btn.classList.add('prompt-list-item--active');
 
@@ -112,7 +116,7 @@
     }
 
     function resetForm() {
-      document.getElementById('form-title').textContent = 'Nieuwe stijl';
+      document.getElementById('form-title').textContent = '{{ t.prompts_new_heading }}';
       document.getElementById('title').value = '';
       document.getElementById('prompt_text').value = '';
       document.getElementById('edit-id').value = '';

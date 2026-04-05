@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,11 +8,11 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <title>EventSnap</title>
-  <link rel="stylesheet" href="/static/style.css?v=17">
+  <title>{{ t.index_title }}</title>
+  <link rel="stylesheet" href="/static/style.css?v=19">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <meta property="og:title" content="EventSnap">
-  <meta property="og:description" content="Genereer een LinkedIn post voor een event dat je gaat bijwonen.">
+  <meta property="og:description" content="{{ t.tagline }}">
   <meta property="og:url" content="https://eventsnap.dreamlead.be">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://eventsnap.dreamlead.be/static/og-image.png">
@@ -23,47 +23,52 @@
       <div class="header-top">
         <h1 class="brand-title">EventSnap</h1>
         <div class="nav-wrap">
+          <form method="post" action="/language" style="margin:0">
+            {{ csrf_field(request) | safe }}
+            <input type="hidden" name="lang" value="{{ 'en' if lang == 'nl' else 'nl' }}">
+            <button type="submit" class="lang-toggle">{{ t.lang_toggle }}</button>
+          </form>
           <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
             <span></span><span></span><span></span>
           </button>
           <nav class="nav-menu" id="nav-menu">
-            <a href="/prompts">Stijlen</a>
-            <a href="/settings">Instellingen</a>
-            <a href="/account">Account</a>
-            {% if current_user and current_user.is_admin %}<a href="/admin/users">Admin</a>{% endif %}
+            <a href="/prompts">{{ t.nav_styles }}</a>
+            <a href="/settings">{{ t.nav_settings }}</a>
+            <a href="/account">{{ t.nav_account }}</a>
+            {% if current_user and current_user.is_admin %}<a href="/admin/users">{{ t.nav_admin }}</a>{% endif %}
             <form action="/logout" method="post" style="margin:0">
               {{ csrf_field(request) | safe }}
-              <button type="submit" class="nav-logout">Uitloggen ({{ current_user.email }})</button>
+              <button type="submit" class="nav-logout">{{ t.nav_logout }} ({{ current_user.email }})</button>
             </form>
           </nav>
         </div>
       </div>
-      <p>Genereer een LinkedIn post voor een event dat je gaat bijwonen.</p>
+      <p>{{ t.tagline }}</p>
     </div>
   </header>
 
   {% include '_verify_banner.html' %}
   <main>
     {% if request.query_params.get('verified') %}
-    <div class="toast" style="position:static">E-mailadres bevestigd ✓</div>
+    <div class="toast" style="position:static">{{ t.index_email_verified }}</div>
     {% endif %}
     {% if request.query_params.get('resent') %}
-    <div class="toast" style="position:static">Verificatiemail opnieuw verstuurd.</div>
+    <div class="toast" style="position:static">{{ t.index_verification_resent }}</div>
     {% endif %}
     {% if request.query_params.get('error') %}
-    <div class="toast toast-error">Fout: {{ request.query_params.get('error') }}</div>
+    <div class="toast toast-error">{{ t.index_error_prefix }} {{ request.query_params.get('error') }}</div>
     {% endif %}
     {% for err in provider_errors %}
-    <div class="toast toast-error">Provider fout — {{ err }}</div>
+    <div class="toast toast-error">{{ t.index_provider_error_prefix }} {{ err }}</div>
     {% endfor %}
     <section class="card">
-      <h2>Jouw tickets</h2>
+      <h2>{{ t.index_your_tickets }}</h2>
       <form method="post" action="/generate">
         {{ csrf_field(request) | safe }}
         <div class="filter-row">
           <div class="filter-group">
-            <button type="button" class="filter-tab active" data-filter="upcoming">Komend</button>
-            <button type="button" class="filter-tab" data-filter="past">Voorbij</button>
+            <button type="button" class="filter-tab active" data-filter="upcoming">{{ t.index_upcoming }}</button>
+            <button type="button" class="filter-tab" data-filter="past">{{ t.index_past }}</button>
           </div>
           {% if active_providers | length > 1 %}
           <div class="filter-group filter-group--right">
@@ -85,13 +90,13 @@
           </label>
           {% endfor %}
           {% if not tickets %}
-          <p class="empty-state">Geen tickets gevonden. <a href="/settings">Controleer je providers</a>.</p>
+          <p class="empty-state">{{ t.index_no_tickets }} <a href="/settings">{{ t.index_check_providers }}</a>.</p>
           {% endif %}
         </div>
-        <p class="empty-state" id="no-results" style="display:none">Geen tickets in deze categorie.</p>
+        <p class="empty-state" id="no-results" style="display:none">{{ t.index_no_tickets_category }}</p>
 
         <div class="prompt-field">
-          <h2>Stijl</h2>
+          <h2>{{ t.index_style }}</h2>
           {% for p in prompts %}
           <label class="prompt-option">
             <input type="radio" name="prompt_id" value="{{ p.id }}"
@@ -101,16 +106,16 @@
           {% endfor %}
           <label class="prompt-option">
             <input type="radio" name="prompt_id" value="">
-            <span>Eigen instructies</span>
+            <span>{{ t.index_own_instructions }}</span>
           </label>
           <input type="text" id="user_prompt" name="user_prompt"
-            placeholder="bv. 'kort en krachtig, focus op de sprekers'"
+            placeholder="{{ t.index_instructions_placeholder }}"
             class="custom-prompt-input">
         </div>
 
         <div class="form-footer">
-          <button type="submit" class="btn-primary" id="generate-btn">Genereer post ✦</button>
-          <a href="/prompts" class="manage-prompts">Stijlen beheren</a>
+          <button type="submit" class="btn-primary" id="generate-btn">{{ t.index_generate_btn }}</button>
+          <a href="/prompts" class="manage-prompts">{{ t.index_manage_styles }}</a>
           <a href="/settings" class="llm-badge-link" title="Actief taalmodel — klik om te wijzigen">
             <span class="llm-pill" style="background:{{ active_llm.color }}">{{ active_llm.id }}</span>
           </a>
@@ -120,7 +125,7 @@
 
     {% if drafts %}
     <section class="card">
-      <h2>Opgeslagen drafts</h2>
+      <h2>{{ t.index_saved_drafts }}</h2>
       <div class="draft-list">
         {% for draft in drafts %}
         <a href="/draft/{{ draft.id }}" class="draft-item">
@@ -135,7 +140,7 @@
   <div id="loading-overlay" style="display:none">
     <div class="loading-box">
       <div class="loading-spinner"></div>
-      <p class="loading-text">Post genereren…</p>
+      <p class="loading-text">{{ t.index_generating }}</p>
     </div>
   </div>
 
@@ -198,7 +203,7 @@
       document.getElementById('loading-overlay').style.display = 'flex';
       const btn = document.getElementById('generate-btn');
       btn.disabled = true;
-      btn.textContent = 'Bezig…';
+      btn.textContent = '{{ t.index_loading_btn }}';
     });
   </script>
 </body>
