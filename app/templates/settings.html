@@ -208,58 +208,74 @@
 
     <section class="card">
       <h2 class="section-heading">Genereer vanuit een webpagina</h2>
-      <p class="section-sub">Haal sessie-inhoud op van eender welke agenda- of converentiepagina en genereer er meteen een LinkedIn post mee.</p>
+      <p class="section-sub">Haal sessie-inhoud op van eender welke agenda- of conferentiepagina en genereer er meteen een LinkedIn post mee.</p>
 
-      <p style="font-size:0.82rem;color:#52525b;margin-bottom:1rem">
-        EventSnap detecteert automatisch de <strong>titel</strong> (eerste regel van je selectie) en toont alles als bewerkbaar tekstveld — je kan dus altijd nog bijsturen vóór je genereert.
-      </p>
+      <!-- SETUP -->
+      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">Eenmalige setup</p>
 
-      <div style="margin-bottom:1.5rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">💻 Desktop — bookmarklet (aanbevolen)</p>
-        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0.75rem 1.25rem;line-height:1.8">
-          <li>Sleep de knop hieronder naar je bookmarksbalk (éénmalig instellen)</li>
-          <li>Ga naar een agenda- of sessiepagina</li>
-          <li><strong>Selecteer de sessietekst</strong> die je wil gebruiken (titel + beschrijving + spreker)</li>
-          <li>Klik op de <em>EventSnap</em> bookmark — de tekst opent meteen in EventSnap</li>
-        </ol>
-        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.75rem 0">
-          Geen selectie? Dan stuurt de bookmark de pagina-URL door en haalt EventSnap de volledige paginatekst op.
-        </p>
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — bookmarklet</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.6rem 0">Sleep de knop hieronder naar je bookmarksbalk:</p>
         <a href="javascript:(function(){var s=window.getSelection().toString().trim();var params=s?'text='+encodeURIComponent(s)+'&url='+encodeURIComponent(window.location.href):'url='+encodeURIComponent(window.location.href);window.open('https://eventsnap.dreamlead.be/from-url?'+params,'_blank');})();"
            style="display:inline-block;padding:0.4rem 0.9rem;background:#0a66c2;color:#fff;border-radius:6px;font-size:0.85rem;text-decoration:none;cursor:grab"
            onclick="alert('Sleep deze knop naar je bookmarksbalk — klik er niet op!');return false;">
           📋 EventSnap
         </a>
-        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem">Geen bookmarksbalk zichtbaar? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
+        <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.4rem">Geen bookmarksbalk? Zet hem aan via Ctrl+Shift+B (Windows/Linux) of Cmd+Shift+B (Mac).</p>
+      </div>
+
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">📱 Android</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0">Open deze pagina in Chrome → drie puntjes → <strong>App installeren</strong> of <strong>Toevoegen aan startscherm</strong>.</p>
       </div>
 
       <div style="margin-bottom:1.5rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">💻 Desktop — plakken (alternatief)</p>
-        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.5rem 0">Handig als de tekst in een popup staat of de bookmarklet niet beschikbaar is:</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">🍎 iOS (Safari)</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0">Open deze pagina in Safari → tik het Delen-icoontje → <strong>Zet op beginscherm</strong>.</p>
+      </div>
+
+      <!-- GEBRUIK -->
+      <p style="font-size:0.9rem;font-weight:700;color:#18181b;margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid #e4e4e7">Dagelijks gebruik</p>
+
+      <p style="font-size:0.82rem;color:#52525b;margin-bottom:1rem">
+        EventSnap haalt automatisch de <strong>titel</strong> op (eerste regel van je selectie) en toont alles als bewerkbaar tekstveld — je kan altijd nog bijsturen vóór je genereert.
+      </p>
+
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — bookmarklet (aanbevolen)</p>
+        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
+          <li>Ga naar een agenda- of sessiepagina</li>
+          <li>Selecteer de sessietekst (titel + beschrijving + spreker)</li>
+          <li>Klik op de <em>EventSnap</em> bookmark in je bookmarksbalk</li>
+        </ol>
+        <p style="font-size:0.82rem;color:#71717a;margin:0.4rem 0 0 0">Geen selectie? Dan stuurt de bookmark de URL door en haalt EventSnap de volledige pagina op.</p>
+      </div>
+
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">💻 Desktop — plakken (alternatief)</p>
+        <p style="font-size:0.82rem;color:#71717a;margin:0 0 0.4rem 0">Handig als tekst in een popup staat of de bookmarklet niet beschikbaar is:</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
           <li>Selecteer en kopieer de sessietekst (Ctrl+C)</li>
-          <li>Open <a href="/from-url" target="_blank" style="color:#0a66c2">EventSnap → Genereer vanuit pagina</a></li>
-          <li>Klik op <strong>📋 Plakken</strong> — de tekst wordt ingeladen en je kan meteen genereren</li>
+          <li>Open <a href="/from-url" target="_blank" style="color:#0a66c2">Genereer vanuit pagina</a></li>
+          <li>Klik op <strong>📋 Plakken</strong></li>
         </ol>
       </div>
 
-      <div style="margin-bottom:1.5rem">
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">📱 Android</p>
-        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0.75rem 1.25rem;line-height:1.8">
-          <li>Installeer EventSnap als app: open deze pagina in Chrome → drie puntjes → <strong>App installeren</strong> of <strong>Toevoegen aan startscherm</strong> (éénmalig)</li>
+      <div style="margin-bottom:1.25rem">
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">📱 Android</p>
+        <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
           <li>Ga naar een agenda-pagina in je browser</li>
-          <li><strong>Optie A (tekst):</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
-          <li><strong>Optie B (URL):</strong> tik de drie puntjes → <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li><strong>Tekst:</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li><strong>URL:</strong> tik de drie puntjes → <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
         </ol>
       </div>
 
       <div>
-        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.5rem">🍎 iOS (Safari)</p>
+        <p style="font-size:0.875rem;font-weight:600;color:#52525b;margin-bottom:0.4rem">🍎 iOS (Safari)</p>
         <ol style="font-size:0.82rem;color:#71717a;margin:0 0 0 1.25rem;line-height:1.8">
-          <li>Installeer EventSnap als app: tik het Delen-icoontje → <strong>Zet op beginscherm</strong> (éénmalig)</li>
           <li>Ga naar een agenda-pagina</li>
-          <li><strong>Optie A (tekst):</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
-          <li><strong>Optie B (URL):</strong> tik het Delen-icoontje → kies <strong>EventSnap</strong></li>
+          <li><strong>Tekst:</strong> selecteer de sessietekst → tik <strong>Delen</strong> → kies <strong>EventSnap</strong></li>
+          <li><strong>URL:</strong> tik het Delen-icoontje → kies <strong>EventSnap</strong></li>
         </ol>
       </div>
     </section>
