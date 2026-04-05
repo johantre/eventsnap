@@ -59,8 +59,8 @@ header p  { margin-top: 0.25rem; opacity: 0.85; font-size: 0.9rem; }
 
 .back { color: white; text-decoration: none; opacity: 0.85; font-size: 0.85rem; position: absolute; bottom: 100%; margin-bottom: 0.2rem; }
 .back:hover { opacity: 1; }
-.lang-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.85); border-radius: 4px; padding: 0.2rem 0.55rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; line-height: 1.6; }
-.lang-toggle:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.7); }
+.lang-toggle { background: none; border: none; color: rgba(255,255,255,0.85); padding: 0.2rem 0.55rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; line-height: 1.6; }
+.lang-toggle:hover { color: white; }
 .event-date { margin-top: 0.25rem; opacity: 0.8; font-size: 0.85rem; }
 
 main { max-width: 720px; margin: 2rem auto; padding: 0 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
