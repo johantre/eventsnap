@@ -1,4 +1,4 @@
-# EventSnap  <img style="vertical-align: top" src='app/static/icon-128.png' width='40' height='40' />
+# EventSnap  <img style="vertical-align: middle" src='app/static/icon-128.png' width='40' height='40' />
 
 Generate LinkedIn post drafts from event agendas and conference session pages — in seconds.
 
