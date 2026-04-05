@@ -29,11 +29,13 @@ Use this when you're attending a session at an event that isn't in your ticket p
 ### Setup (once per device)
 
 **Desktop** — install the bookmarklet:
-> Drag the **📋 EventSnap** button from the Settings page to your bookmarks bar.
+> Right-click the **📋 EventSnap** button on the Settings page → **Bookmark this link**.
 > Enable the bookmarks bar via `Ctrl+Shift+B` (Windows/Linux) or `Cmd+Shift+B` (Mac) if it's not visible.
 
 **Android** — install EventSnap as an app:
-> Open [eventsnap.dreamlead.be](https://eventsnap.dreamlead.be) in Chrome → tap the three dots → **Install app** or **Add to home screen**.
+> Open [eventsnap.dreamlead.be](https://eventsnap.dreamlead.be) in Chrome → tap the three dots → **Add to Home screen**.
+
+<img src="docs/images/mobile-setup.png" width="320" alt="Android: Add to Home screen">
 
 **iOS (Safari)** — install EventSnap as an app:
 > Open [eventsnap.dreamlead.be](https://eventsnap.dreamlead.be) in Safari → tap the Share icon → **Add to Home Screen**.
@@ -43,9 +45,23 @@ Use this when you're attending a session at an event that isn't in your ticket p
 ### Daily use
 
 **Desktop — bookmarklet (recommended)**
+
 1. Go to any agenda or session page
 2. Select the session text (title + description + speaker)
+
+   ![Select session text on a conference agenda page](docs/images/desktop-usage-1.png)
+
 3. Click the **EventSnap** bookmark in your bookmarks bar — the text opens directly in EventSnap
+
+   ![EventSnap form pre-filled with the selected session text](docs/images/desktop-usage-3.png)
+
+4. Optionally add extra instructions (e.g. "write in English", "focus on the Q&A")
+
+   ![Adding extra instructions before generating](docs/images/desktop-usage-4.png)
+
+5. Click **Genereer post** — the draft appears, ready to edit and copy
+
+   ![Generated LinkedIn draft](docs/images/desktop-usage-5.png)
 
 > No selection? The bookmarklet sends the page URL instead and EventSnap scrapes the full page.
 
@@ -59,9 +75,21 @@ Useful when text is inside a popup or the bookmarklet isn't available:
 > If the page blocks copying (`user-select: none`), paste the URL instead — EventSnap will scrape it server-side, bypassing the restriction.
 
 **Android**
+
 1. Go to any agenda page in your browser
-2. **Text**: select session text → tap **Share** → choose **EventSnap**
-3. **URL**: tap the three dots → **Share** → choose **EventSnap**
+2. Select the session text → tap **Share**
+
+   <img src="docs/images/mobile-usage-1.png" width="320" alt="Select text and tap Share on Android">
+
+3. Choose **EventSnap** from the share sheet
+
+   <img src="docs/images/mobile-usage-2.png" width="320" alt="Share sheet with EventSnap">
+
+4. The form opens pre-filled — add instructions if needed and tap **Genereer post**
+
+   <img src="docs/images/mobile-usage-3.png" width="320" alt="EventSnap form on Android">
+
+> You can also share the page URL directly: tap the three dots → **Share** → **EventSnap**.
 
 **iOS (Safari)**
 1. Go to any agenda page
