@@ -662,9 +662,9 @@ async def generate(
         if stored_key:
             os.environ[env_key] = stored_key
 
-    # Check: active LLM must have an API key
+    # Check: active LLM must have an API key (check per-user DB, not shared env)
     active_llm = get_setting("active_llm", uid) or "groq"
-    if not os.environ.get(env_map.get(active_llm, "")):
+    if not get_setting(f"{active_llm}_api_key", uid):
         return RedirectResponse(f"/?error={quote(tr['err_no_llm_configured'])}", status_code=303)
 
     if not ticket_key:

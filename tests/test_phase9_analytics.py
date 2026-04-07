@@ -13,7 +13,7 @@ Verifieert dat:
 import json
 import pytest
 from unittest.mock import patch, MagicMock
-from app.db import hash_password, log_event
+from app.db import hash_password, log_event, set_setting
 from tests.conftest import TEST_EMAIL, TEST_PASSWORD
 
 
@@ -53,11 +53,12 @@ def test_log_event_stores_json(test_db):
 
 async def test_generate_ok_logs_event(authed_client, test_db):
     """Na succesvolle generatie wordt een generate_ok event gelogd."""
+    uid = test_db.execute("SELECT id FROM users WHERE email = ?", (TEST_EMAIL,)).fetchone()["id"]
+    set_setting("groq_api_key", "test-key", uid)
     mock_event = _make_event()
     with patch("app.server.get_providers_for_user", return_value={
         "collective": MagicMock(fetch_event_by_id=MagicMock(return_value=mock_event))
-    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)), \
-       patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)):
         await authed_client.post("/generate", data={
             "ticket_key": "collective:ev1",
             "user_prompt": "Test prompt",
@@ -74,11 +75,12 @@ async def test_generate_ok_logs_event(authed_client, test_db):
 
 async def test_generate_stores_generation_ms(authed_client, test_db):
     """generation_ms wordt opgeslagen op de draft."""
+    uid = test_db.execute("SELECT id FROM users WHERE email = ?", (TEST_EMAIL,)).fetchone()["id"]
+    set_setting("groq_api_key", "test-key", uid)
     mock_event = _make_event()
     with patch("app.server.get_providers_for_user", return_value={
         "collective": MagicMock(fetch_event_by_id=MagicMock(return_value=mock_event))
-    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)), \
-       patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+    }), patch("app.server.generate_linkedin_post", return_value=("Test post", 100, 50)):
         await authed_client.post("/generate", data={
             "ticket_key": "collective:ev1",
             "user_prompt": "Test prompt",
@@ -96,9 +98,11 @@ async def test_generate_stores_generation_ms(authed_client, test_db):
 
 async def test_generate_fail_logs_event(authed_client, test_db):
     """Na mislukte generatie wordt een generate_fail event gelogd."""
+    uid = test_db.execute("SELECT id FROM users WHERE email = ?", (TEST_EMAIL,)).fetchone()["id"]
+    set_setting("groq_api_key", "test-key", uid)
     with patch("app.server.get_providers_for_user", return_value={
         "collective": MagicMock(fetch_event_by_id=MagicMock(side_effect=Exception("LLM timeout")))
-    }), patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+    }):
         await authed_client.post("/generate", data={
             "ticket_key": "collective:ev1",
             "user_prompt": "Test",
