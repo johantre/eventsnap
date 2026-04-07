@@ -77,7 +77,7 @@
       </form>
     </section>
 
-    <section class="card">
+    <section class="card" id="providers">
       <form method="post" action="/settings">
         {{ csrf_field(request) | safe }}
         <h2 class="section-heading">{{ t.settings_providers_heading }}</h2>
@@ -141,10 +141,8 @@
               </span>
               <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">{{ t.settings_get_token }}</a>
               {% if eventbrite_ok %}
-              <form method="post" action="/settings/eventbrite/clear" style="display:inline">
-                {{ csrf_field(request) | safe }}
-                <button type="submit" class="llm-key-link" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:0;font-size:inherit">{{ t.settings_clear_token }}</button>
-              </form>
+              <button type="button" class="llm-key-link" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:0"
+                onclick="clearEventbriteToken()">{{ t.settings_clear_token }}</button>
               {% endif %}
             </div>
           </div>
@@ -396,6 +394,19 @@
         if (input.value.trim()) validateKey(input.dataset.llm, input.value.trim());
       });
     });
+
+    // Eventbrite clear token
+    async function clearEventbriteToken() {
+      const csrf = document.querySelector('input[name="_csrf_token"]').value;
+      const resp = await fetch('/settings/eventbrite/clear', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: '_csrf_token=' + encodeURIComponent(csrf),
+      });
+      if (resp.ok || resp.redirected) {
+        window.location.href = '/settings?saved=1';
+      }
+    }
 
     // Eventbrite token inline validation
     async function validateEventbriteToken(token) {

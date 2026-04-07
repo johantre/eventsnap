@@ -505,7 +505,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
 _providers: dict = {}         # {user_id: {name: provider}}
 _tickets_cache: dict = {}     # {user_id: [tickets]}
 _tickets_cache_time: dict = {}  # {user_id: float}
-_provider_load_errors: dict = {}  # {user_id: [str]}
+_provider_load_errors: dict = {}  # {user_id: [str]} — fouten bij laden/authenticatie
+_fetch_errors: dict = {}          # {user_id: [str]} — fouten bij ophalen tickets
 TICKETS_CACHE_TTL = 300
 
 
@@ -547,15 +548,17 @@ def reset_providers_for_user(user_id: int):
     _tickets_cache.pop(user_id, None)
     _tickets_cache_time.pop(user_id, None)
     _provider_load_errors.pop(user_id, None)
+    _fetch_errors.pop(user_id, None)
 
 
 def get_tickets_for_user(user_id: int) -> tuple[list, list]:
     import time
     if user_id in _tickets_cache and (time.time() - _tickets_cache_time.get(user_id, 0)) < TICKETS_CACHE_TTL:
-        return _tickets_cache[user_id], list(_provider_load_errors.get(user_id, []))
+        combined = list(_provider_load_errors.get(user_id, [])) + list(_fetch_errors.get(user_id, []))
+        return _tickets_cache[user_id], combined
     get_providers_for_user(user_id)
     all_tickets = []
-    errors = list(_provider_load_errors.get(user_id, []))
+    fetch_errs = []
     for name, p in _providers.get(user_id, {}).items():
         try:
             all_tickets.extend(p.fetch_tickets())
@@ -565,13 +568,14 @@ def get_tickets_for_user(user_id: int) -> tuple[list, list]:
             if (name == "eventbrite"
                     and isinstance(e, _req.exceptions.HTTPError)
                     and getattr(getattr(e, "response", None), "status_code", None) == 401):
-                errors.append("eventbrite:401_unauthorized")
+                fetch_errs.append("eventbrite:401_unauthorized")
             else:
-                errors.append(f"{name}: ophalen mislukt — {e}")
+                fetch_errs.append(f"{name}: ophalen mislukt — {e}")
     all_tickets.sort(key=lambda t: t.event_date or "9999")
     _tickets_cache[user_id] = all_tickets
     _tickets_cache_time[user_id] = time.time()
-    return all_tickets, errors
+    _fetch_errors[user_id] = fetch_errs
+    return all_tickets, list(_provider_load_errors.get(user_id, [])) + fetch_errs
 
 
 # ---------------------------------------------------------------------------
