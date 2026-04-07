@@ -574,13 +574,17 @@ def get_tickets_for_user(user_id: int) -> tuple[list, list]:
 
 LLM_OPTIONS = [
     {"id": "groq",   "label": "Groq",   "sublabel": "Llama 3.3 70B",    "env": "GROQ_API_KEY",
-     "color": "#6366f1", "cost": "free", "cost_tip": "Volledig gratis"},
+     "color": "#6366f1", "cost": "free", "cost_tip": "Volledig gratis",
+     "url": "https://console.groq.com/keys"},
     {"id": "claude", "label": "Claude", "sublabel": "Sonnet 4.6",        "env": "ANTHROPIC_API_KEY",
-     "color": "#d97706", "cost": "coin", "cost_tip": "~0.01€/post · min. $5 opladen"},
+     "color": "#d97706", "cost": "coin", "cost_tip": "~0.01€/post · min. $5 opladen",
+     "url": "https://console.anthropic.com/settings/keys"},
     {"id": "openai", "label": "OpenAI", "sublabel": "GPT-4o mini",       "env": "OPENAI_API_KEY",
-     "color": "#16a34a", "cost": "coin", "cost_tip": "~0.01€/post · min. $5 opladen"},
+     "color": "#16a34a", "cost": "coin", "cost_tip": "~0.01€/post · min. $5 opladen",
+     "url": "https://platform.openai.com/api-keys"},
     {"id": "gemini", "label": "Gemini", "sublabel": "2.5 Flash",         "env": "GEMINI_API_KEY",
-     "color": "#2563eb", "cost": "card", "cost_tip": "Gratis tier · credit card info nodig"},
+     "color": "#2563eb", "cost": "card", "cost_tip": "Gratis tier · credit card info nodig",
+     "url": "https://aistudio.google.com/app/apikey"},
 ]
 
 # Cost per 1M tokens in USD (input, output)
