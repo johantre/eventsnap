@@ -59,7 +59,7 @@
     <div class="toast toast-error">{{ t.index_error_prefix }} {{ request.query_params.get('error') }}</div>
     {% endif %}
     {% for err in provider_errors %}
-    <div class="toast toast-error">{% if err == "eventbrite:401_unauthorized" %}{{ t.eventbrite_401_error }}{% else %}{{ t.index_provider_error_prefix }} {{ err }}{% endif %}</div>
+    <div class="toast toast-error">{% if err == "eventbrite:401_unauthorized" %}{{ t.eventbrite_401_error }}{% elif err == "collective:auth_failed" %}{{ t.err_collective_login }}{% else %}{{ t.index_provider_error_prefix }} {{ err }}{% endif %}</div>
     {% endfor %}
     <section class="card">
       <h2>{{ t.index_your_tickets }}</h2>
@@ -130,7 +130,7 @@
         {% for draft in drafts %}
         <a href="/draft/{{ draft.id }}" class="draft-item">
           <span class="draft-title">{{ draft.event_title }}</span>
-          <span class="draft-meta">{{ draft.updated_at[:10] }}</span>
+          <span class="draft-meta">{{ draft.updated_at[:10] }} {{ draft.updated_at[11:16] }}</span>
         </a>
         {% endfor %}
       </div>

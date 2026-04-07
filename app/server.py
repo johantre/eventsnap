@@ -491,10 +491,12 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
+    print(f"[500] {exc}")
+    tr = TRANSLATIONS[get_lang(request)]
     return templates.TemplateResponse(request, "error.html", {
         **_tctx(request, request.session.get("user_id")),
         "status": 500,
-        "message": str(exc),
+        "message": tr["err_unknown"],
     }, status_code=500)
 
 
@@ -524,7 +526,7 @@ def _load_providers_for_user(user_id: int) -> tuple[dict, list]:
             providers["collective"] = p
         except Exception as e:
             print(f"[Collective] auth failed: {e}")
-            errors.append("Collective: inloggen mislukt — controleer je e-mail en wachtwoord")
+            errors.append("collective:auth_failed")
 
     token = get_setting("eventbrite_token", user_id)
     if token:
@@ -570,7 +572,7 @@ def get_tickets_for_user(user_id: int) -> tuple[list, list]:
                     and getattr(getattr(e, "response", None), "status_code", None) == 401):
                 fetch_errs.append("eventbrite:401_unauthorized")
             else:
-                fetch_errs.append(f"{name}: ophalen mislukt — {e}")
+                fetch_errs.append(f"{name}: ophalen mislukt")
     all_tickets.sort(key=lambda t: t.event_date or "9999")
     _tickets_cache[user_id] = all_tickets
     _tickets_cache_time[user_id] = time.time()
@@ -1074,7 +1076,7 @@ async def validate_and_save_eventbrite_token(request: Request, current_user=Depe
     except _req.exceptions.HTTPError:
         return JSONResponse({"ok": False, "msg": tr["eventbrite_token_invalid"]})
     except Exception as e:
-        return JSONResponse({"ok": False, "msg": f"{tr['eventbrite_token_connection_error']}: {e}"})
+        return JSONResponse({"ok": False, "msg": tr["eventbrite_token_connection_error"]})
 
 
 @app.post("/settings/eventbrite/clear")
@@ -1273,7 +1275,7 @@ async def from_url_get(request: Request, current_user=Depends(get_current_user),
             )
         except Exception as e:
             tr = TRANSLATIONS[get_lang(request, uid)]
-            error = f"{tr['err_fetch_failed']} {e}"
+            error = tr["err_fetch_failed"]
 
     db = get_db()
     prompts = db.execute("SELECT * FROM prompts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()

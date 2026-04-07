@@ -98,7 +98,7 @@ def test_llm(llm: str) -> tuple[bool, str]:
             return False, "Betalingsgegevens vereist — voeg een betaalmethode toe in de console"
         if "no api key" in msg:
             return False, "Geen API key ingevuld"
-        return False, f"Verbinding mislukt — {str(e)}"
+        return False, "Verbinding mislukt"
 
 
 def detect_llm() -> str:
