@@ -86,9 +86,17 @@
         <div class="provider-block">
           <div class="provider-header">
             <span class="provider-name">Collective / Wintercircus</span>
-            <span class="llm-badge {% if not collective.ok %}llm-badge-missing{% endif %}" id="badge-collective">
-              {% if collective.ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
-            </span>
+            <div class="llm-meta">
+              <span class="llm-badge {% if not collective.ok %}llm-badge-missing{% endif %}" id="badge-collective">
+                {% if collective.ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
+              </span>
+              <button type="button" class="llm-key-link" style="background:none;border:none;cursor:pointer;padding:0"
+                onclick="testCollective()">{{ t.collective_test_btn }}</button>
+              {% if collective.ok %}
+              <button type="button" class="llm-key-link" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:0"
+                onclick="clearCollective()">{{ t.settings_clear_collective }}</button>
+              {% endif %}
+            </div>
           </div>
           <div class="prompt-field">
             <label class="url-label-row">
@@ -125,14 +133,6 @@
             <input type="password" name="collective_password" id="collective-password" autocomplete="new-password" readonly
               onfocus="this.removeAttribute('readonly')"
               placeholder="{% if collective.password_set %}{{ t.settings_pw_leave_empty }}{% else %}{{ t.settings_pw_enter }}{% endif %}">
-          </div>
-          <div class="llm-meta" style="margin-top:0.5rem">
-            <button type="button" class="llm-key-link" style="background:none;border:none;cursor:pointer;padding:0"
-              onclick="testCollective()">{{ t.collective_test_btn }}</button>
-            {% if collective.ok %}
-            <button type="button" class="llm-key-link" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:0"
-              onclick="clearCollective()">{{ t.settings_clear_collective }}</button>
-            {% endif %}
           </div>
           <p class="key-msg" id="msg-collective"></p>
         </div>
