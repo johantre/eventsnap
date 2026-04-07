@@ -24,7 +24,7 @@ from summary.generator import generate_linkedin_post, test_llm
 from app.mail import send_password_reset, send_verification_email
 from app.translations import TRANSLATIONS
 from app.db import (
-    init_db, get_db, get_setting, set_setting,
+    init_db, get_db, get_setting, set_setting, del_setting,
     get_user_by_id, get_user_by_email, create_user, verify_password,
     update_user_password, update_user_email, delete_user,
     create_password_reset_token, get_password_reset_token, consume_password_reset_token,
@@ -561,7 +561,13 @@ def get_tickets_for_user(user_id: int) -> tuple[list, list]:
             all_tickets.extend(p.fetch_tickets())
         except Exception as e:
             print(f"[provider] fetch_tickets failed: {e}")
-            errors.append(f"{name}: ophalen mislukt — {e}")
+            import requests as _req
+            if (name == "eventbrite"
+                    and isinstance(e, _req.exceptions.HTTPError)
+                    and getattr(getattr(e, "response", None), "status_code", None) == 401):
+                errors.append("eventbrite:401_unauthorized")
+            else:
+                errors.append(f"{name}: ophalen mislukt — {e}")
     all_tickets.sort(key=lambda t: t.event_date or "9999")
     _tickets_cache[user_id] = all_tickets
     _tickets_cache_time[user_id] = time.time()
@@ -1005,7 +1011,6 @@ PROVIDER_SETTINGS = [
     {"id": "collective_url",      "label": "URL"},
     {"id": "collective_email",    "label": "E-mail"},
     {"id": "collective_password", "label": "Wachtwoord"},
-    {"id": "eventbrite_token",    "label": "Eventbrite token"},
     {"id": "meetup_token",        "label": "Meetup token"},
 ]
 
@@ -1038,6 +1043,42 @@ async def validate_and_save_key(llm_id: str, request: Request, current_user=Depe
             os.environ.pop(env_var, None)
 
     return JSONResponse({"ok": ok, "msg": msg})
+
+
+@app.post("/settings/eventbrite/token")
+async def validate_and_save_eventbrite_token(request: Request, current_user=Depends(get_current_user)):
+    from fastapi.responses import JSONResponse
+    import requests as _req
+    uid = current_user["id"]
+    tr = TRANSLATIONS[get_lang(request, uid)]
+    body = await request.json()
+    token = body.get("token", "").strip()
+    if not token:
+        return JSONResponse({"ok": False, "msg": tr["eventbrite_token_empty"]})
+    try:
+        resp = _req.get(
+            "https://www.eventbriteapi.com/v3/users/me/",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+        if resp.status_code == 401:
+            return JSONResponse({"ok": False, "msg": tr["eventbrite_token_invalid"]})
+        resp.raise_for_status()
+        set_setting("eventbrite_token", token, uid)
+        reset_providers_for_user(uid)
+        return JSONResponse({"ok": True, "msg": tr["eventbrite_token_saved"]})
+    except _req.exceptions.HTTPError:
+        return JSONResponse({"ok": False, "msg": tr["eventbrite_token_invalid"]})
+    except Exception as e:
+        return JSONResponse({"ok": False, "msg": f"{tr['eventbrite_token_connection_error']}: {e}"})
+
+
+@app.post("/settings/eventbrite/clear")
+async def clear_eventbrite_token(request: Request, current_user=Depends(get_current_user), _csrf=Depends(verify_csrf)):
+    uid = current_user["id"]
+    del_setting("eventbrite_token", uid)
+    reset_providers_for_user(uid)
+    return RedirectResponse("/settings?saved=1", status_code=303)
 
 
 @app.post("/settings")

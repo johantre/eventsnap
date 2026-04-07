@@ -131,16 +131,24 @@
           <div class="provider-header">
             <span class="provider-name">Eventbrite</span><span class="llm-sublabel">Private token</span>
           </div>
-          <div class="llm-key-row">
-            <input type="password" name="eventbrite_token" autocomplete="off"
+          <div class="llm-key-row" id="wrap-eventbrite">
+            <input type="password" id="eventbrite-token-input" autocomplete="off"
               placeholder="{% if eventbrite_ok %}{{ t.settings_token_leave_empty }}{% else %}{{ t.settings_token_paste }}{% endif %}">
+            <span class="key-status" id="status-eventbrite"></span>
             <div class="llm-meta">
-              <span class="llm-badge {% if not eventbrite_ok %}llm-badge-missing{% endif %}">
+              <span class="llm-badge {% if not eventbrite_ok %}llm-badge-missing{% endif %}" id="badge-eventbrite">
                 {% if eventbrite_ok %}{{ t.settings_configured }}{% else %}{{ t.settings_not_configured }}{% endif %}
               </span>
-              <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">{{ t.settings_get_key }}</a>
+              <a href="https://www.eventbrite.com/account-settings/apps" target="_blank" class="llm-key-link">{{ t.settings_get_token }}</a>
+              {% if eventbrite_ok %}
+              <form method="post" action="/settings/eventbrite/clear" style="display:inline">
+                {{ csrf_field(request) | safe }}
+                <button type="submit" class="llm-key-link" style="background:none;border:none;cursor:pointer;color:#dc2626;padding:0;font-size:inherit">{{ t.settings_clear_token }}</button>
+              </form>
+              {% endif %}
             </div>
           </div>
+          <p class="key-msg" id="msg-eventbrite"></p>
           <p class="provider-hint">{{ t.settings_eventbrite_hint | safe }}</p>
         </div>
 
@@ -388,6 +396,82 @@
         if (input.value.trim()) validateKey(input.dataset.llm, input.value.trim());
       });
     });
+
+    // Eventbrite token inline validation
+    async function validateEventbriteToken(token) {
+      const wrap = document.getElementById('wrap-eventbrite');
+      const statusEl = document.getElementById('status-eventbrite');
+      const msgEl = document.getElementById('msg-eventbrite');
+      const badgeEl = document.getElementById('badge-eventbrite');
+
+      wrap.classList.remove('key-valid', 'key-invalid');
+      wrap.classList.add('key-testing');
+      statusEl.textContent = '⏳';
+      msgEl.textContent = '';
+
+      try {
+        const resp = await fetch('/settings/eventbrite/token', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({token})
+        });
+        const data = await resp.json();
+        wrap.classList.remove('key-testing');
+
+        if (data.ok) {
+          wrap.classList.add('key-valid');
+          statusEl.textContent = '✓';
+          msgEl.textContent = data.msg;
+          msgEl.className = 'key-msg key-msg-ok';
+          badgeEl.textContent = i18n.configured;
+          badgeEl.classList.remove('llm-badge-missing');
+        } else {
+          wrap.classList.add('key-invalid');
+          statusEl.textContent = '✗';
+          msgEl.textContent = data.msg;
+          msgEl.className = 'key-msg key-msg-err';
+        }
+      } catch(e) {
+        wrap.classList.remove('key-testing');
+        wrap.classList.add('key-invalid');
+        statusEl.textContent = '✗';
+        msgEl.textContent = i18n.connectionFailed;
+        msgEl.className = 'key-msg key-msg-err';
+      }
+    }
+
+    (function() {
+      const input = document.getElementById('eventbrite-token-input');
+      if (!input) return;
+      let debounceTimer;
+
+      function resetState() {
+        const wrap = document.getElementById('wrap-eventbrite');
+        wrap.classList.remove('key-valid', 'key-invalid', 'key-testing');
+        document.getElementById('status-eventbrite').textContent = '';
+        document.getElementById('msg-eventbrite').textContent = '';
+      }
+
+      input.addEventListener('paste', () => {
+        setTimeout(() => {
+          if (input.value.trim()) validateEventbriteToken(input.value.trim());
+        }, 100);
+      });
+
+      input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        if (!input.value.trim()) { resetState(); return; }
+        resetState();
+        debounceTimer = setTimeout(() => {
+          if (input.value.trim()) validateEventbriteToken(input.value.trim());
+        }, 1200);
+      });
+
+      input.addEventListener('blur', () => {
+        clearTimeout(debounceTimer);
+        if (input.value.trim()) validateEventbriteToken(input.value.trim());
+      });
+    })();
 
     // Dirty state: enable Save button only when form values changed
     document.querySelectorAll('form[action="/settings"]').forEach(form => {

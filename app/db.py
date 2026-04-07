@@ -281,6 +281,13 @@ def set_setting(key: str, value: str, user_id: int) -> None:
     conn.close()
 
 
+def del_setting(key: str, user_id: int) -> None:
+    conn = get_db()
+    conn.execute("DELETE FROM settings WHERE user_id = ? AND key = ?", (user_id, key))
+    conn.commit()
+    conn.close()
+
+
 SEED_PROMPTS = [
     (
         "Klassieke Collective post",

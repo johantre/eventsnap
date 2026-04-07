@@ -59,7 +59,7 @@
     <div class="toast toast-error">{{ t.index_error_prefix }} {{ request.query_params.get('error') }}</div>
     {% endif %}
     {% for err in provider_errors %}
-    <div class="toast toast-error">{{ t.index_provider_error_prefix }} {{ err }}</div>
+    <div class="toast toast-error">{% if err == "eventbrite:401_unauthorized" %}{{ t.eventbrite_401_error }}{% else %}{{ t.index_provider_error_prefix }} {{ err }}{% endif %}</div>
     {% endfor %}
     <section class="card">
       <h2>{{ t.index_your_tickets }}</h2>
