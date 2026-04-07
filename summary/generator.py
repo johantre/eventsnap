@@ -90,13 +90,13 @@ def test_llm(llm: str) -> tuple[bool, str]:
         return True, "Verbinding OK"
     except Exception as e:
         msg = str(e).lower()
-        if "401" in msg or "invalid api key" in msg or "invalid_api_key" in msg or "authentication" in msg or "unauthorized" in msg:
+        if "401" in msg or "invalid api key" in msg or "invalid_api_key" in msg or "api_key_invalid" in msg or "api key not" in msg or "authentication" in msg or "unauthorized" in msg:
             return False, "Ongeldige API key — controleer of je de juiste key hebt geplakt"
         if "429" in msg or "quota" in msg or "rate limit" in msg:
             return False, "Limiet bereikt — je hebt geen credits meer of je zit aan de gratis limiet"
         if "403" in msg or "billing" in msg or "payment" in msg:
             return False, "Betalingsgegevens vereist — voeg een betaalmethode toe in de console"
-        if "no api key" in msg or "api key not" in msg:
+        if "no api key" in msg:
             return False, "Geen API key ingevuld"
         return False, f"Verbinding mislukt — {str(e)}"
 

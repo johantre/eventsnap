@@ -1085,6 +1085,48 @@ async def clear_eventbrite_token(request: Request, current_user=Depends(get_curr
     return RedirectResponse("/settings?saved=1", status_code=303)
 
 
+@app.post("/settings/key/{llm_id}/clear")
+async def clear_llm_key(llm_id: str, request: Request, current_user=Depends(get_current_user)):
+    from fastapi.responses import JSONResponse
+    uid = current_user["id"]
+    env_key_map = {"groq": "GROQ_API_KEY", "claude": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY"}
+    if llm_id not in env_key_map:
+        return JSONResponse({"ok": False, "msg": "Onbekende LLM"})
+    del_setting(f"{llm_id}_api_key", uid)
+    return JSONResponse({"ok": True})
+
+
+@app.post("/settings/collective/test")
+async def test_collective_connection(request: Request, current_user=Depends(get_current_user)):
+    from fastapi.responses import JSONResponse
+    uid = current_user["id"]
+    tr = TRANSLATIONS[get_lang(request, uid)]
+    body = await request.json()
+    url = body.get("url", "").strip() or get_setting("collective_url", uid)
+    email = body.get("email", "").strip() or get_setting("collective_email", uid)
+    password = body.get("password", "").strip() or get_setting("collective_password", uid)
+    if not (url and email and password):
+        return JSONResponse({"ok": False, "msg": tr["collective_test_missing_fields"]})
+    try:
+        p = CollectiveProvider(url, email, password)
+        p.authenticate()
+        return JSONResponse({"ok": True, "msg": tr["collective_test_ok"]})
+    except RuntimeError:
+        return JSONResponse({"ok": False, "msg": tr["collective_test_fail"] + " — " + tr["collective_test_check_credentials"]})
+    except Exception:
+        return JSONResponse({"ok": False, "msg": tr["collective_test_connection_error"]})
+
+
+@app.post("/settings/collective/clear")
+async def clear_collective(request: Request, current_user=Depends(get_current_user)):
+    from fastapi.responses import JSONResponse
+    uid = current_user["id"]
+    for key in ("collective_url", "collective_email", "collective_password"):
+        del_setting(key, uid)
+    reset_providers_for_user(uid)
+    return JSONResponse({"ok": True})
+
+
 @app.post("/settings")
 async def save_settings(request: Request, current_user=Depends(get_current_user), _csrf=Depends(verify_csrf)):
     uid = current_user["id"]
