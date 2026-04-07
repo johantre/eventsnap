@@ -81,3 +81,58 @@ async def test_settings_page_llm_key_links_are_external(authed_client):
         assert url in html, (
             f"URL '{url}' voor LLM '{opt['id']}' niet gevonden in de settings-pagina"
         )
+
+
+# ---------------------------------------------------------------------------
+# Regressietest: /generate zonder ticket geeft vriendelijke redirect, geen JSON
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_generate_without_llm_redirects_with_friendly_error(authed_client):
+    """
+    POST /generate zonder geconfigureerde LLM mag geen ruwe JSON geven,
+    maar moet terugleiden naar / met een leesbare foutmelding over de LLM.
+    """
+    resp = await authed_client.post(
+        "/generate",
+        data={"ticket_key": "collective:123"},
+        follow_redirects=False,
+    )
+
+    assert resp.status_code == 303, (
+        f"Verwachtte redirect (303) maar kreeg {resp.status_code}. "
+        f"Body: {resp.text[:200]}"
+    )
+    location = resp.headers["location"]
+    assert location.startswith("/?error="), (
+        f"Redirect gaat naar '{location}' in plaats van /?error=..."
+    )
+    # Mag geen ruwe FastAPI validation JSON zijn
+    assert '"detail"' not in resp.text
+    assert "ticket_key" not in resp.text
+
+
+@pytest.mark.asyncio
+async def test_generate_without_llm_error_mentions_settings(authed_client):
+    """De foutmelding verwijst naar de instellingen, niet een technische stacktrace."""
+    resp = await authed_client.post(
+        "/generate",
+        data={"ticket_key": "collective:123"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    # Fout bevat iets over LLM of instellingen configureren
+    assert any(word in resp.text for word in ["LLM", "instellingen", "API", "Configureer"])
+
+
+@pytest.mark.asyncio
+async def test_generate_without_ticket_key_redirects_with_friendly_error(authed_client):
+    """POST /generate zonder ticket_key geeft vriendelijke redirect, geen JSON."""
+    resp = await authed_client.post("/generate", data={}, follow_redirects=False)
+
+    assert resp.status_code == 303, (
+        f"Verwachtte redirect (303) maar kreeg {resp.status_code}. "
+        f"Body: {resp.text[:200]}"
+    )
+    assert '"detail"' not in resp.text
+    assert "ticket_key" not in resp.text

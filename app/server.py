@@ -633,12 +633,31 @@ async def generate(
     request: Request,
     current_user=Depends(get_current_user),
     _csrf=Depends(verify_csrf),
-    ticket_key: str = Form(...),
+    ticket_key: str | None = Form(None),
     prompt_id: int = Form(None),
     user_prompt: str = Form(""),
 ):
     uid = current_user["id"]
     active_llm = None
+    from urllib.parse import quote
+    tr = TRANSLATIONS[get_lang(request, uid)]
+
+    env_map = {"groq": "GROQ_API_KEY", "claude": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY"}
+
+    # Load user API keys into env before any check
+    for llm_name, env_key in env_map.items():
+        stored_key = get_setting(f"{llm_name}_api_key", uid)
+        if stored_key:
+            os.environ[env_key] = stored_key
+
+    # Check: active LLM must have an API key
+    active_llm = get_setting("active_llm", uid) or "groq"
+    if not os.environ.get(env_map.get(active_llm, "")):
+        return RedirectResponse(f"/?error={quote(tr['err_no_llm_configured'])}", status_code=303)
+
+    if not ticket_key:
+        return RedirectResponse(f"/?error={quote(tr['err_no_ticket_selected'])}", status_code=303)
+
     try:
         provider_name, event_id = ticket_key.split(":", 1)
         provider = get_providers_for_user(uid)[provider_name]
@@ -652,13 +671,6 @@ async def generate(
             prompt_text = row["prompt_text"] if row else ""
         if user_prompt.strip():
             prompt_text = (prompt_text + "\n" + user_prompt).strip() if prompt_text else user_prompt
-
-        active_llm = get_setting("active_llm", uid) or "groq"
-        env_map = {"groq": "GROQ_API_KEY", "claude": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "gemini": "GEMINI_API_KEY"}
-        for llm_name, env_key in env_map.items():
-            stored_key = get_setting(f"{llm_name}_api_key", uid)
-            if stored_key:
-                os.environ[env_key] = stored_key
 
         custom_system_prompt = get_setting("system_prompt", uid) or None
         t0 = _time.time()

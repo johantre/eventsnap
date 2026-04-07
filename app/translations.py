@@ -338,6 +338,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "err_payment_required": "Betalingsgegevens vereist — voeg een betaalmethode toe",
         "err_connection_timeout": "Verbinding time-out — probeer opnieuw",
         "err_unknown": "Onbekende fout",
+        "err_no_llm_configured": "Configureer eerst een LLM API-sleutel in de instellingen voordat je een post genereert",
+        "err_no_ticket_selected": "Kies eerst een ticket voordat je een post genereert",
     },
 
     "en": {
@@ -679,5 +681,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "err_payment_required": "Payment details required — add a payment method",
         "err_connection_timeout": "Connection timed out — try again",
         "err_unknown": "Unknown error",
+        "err_no_llm_configured": "Configure an LLM API key in settings before generating a post",
+        "err_no_ticket_selected": "Select a ticket first before generating a post",
     },
 }

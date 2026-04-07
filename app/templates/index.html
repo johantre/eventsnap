@@ -205,6 +205,15 @@
       btn.disabled = true;
       btn.textContent = '{{ t.index_loading_btn }}';
     });
+
+    // Reset spinner when returning via browser back (bfcache restore)
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted) {
+        document.getElementById('loading-overlay').style.display = 'none';
+        const btn = document.getElementById('generate-btn');
+        if (btn) { btn.disabled = false; btn.textContent = '{{ t.index_generate_btn }}'; }
+      }
+    });
   </script>
 </body>
 </html>
