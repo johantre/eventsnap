@@ -142,8 +142,9 @@
             <span class="provider-name">Eventbrite</span><span class="llm-sublabel">Private token</span>
           </div>
           <div class="llm-key-row" id="wrap-eventbrite">
-            <input type="password" id="eventbrite-token-input" autocomplete="off"
-              placeholder="{% if eventbrite_ok %}{{ t.settings_token_leave_empty }}{% else %}{{ t.settings_token_paste }}{% endif %}">
+            <input type="password" id="eventbrite-token-input" autocomplete="new-password"
+              placeholder="{% if eventbrite_ok %}{{ t.settings_token_leave_empty }}{% else %}{{ t.settings_token_paste }}{% endif %}"
+              readonly onfocus="this.removeAttribute('readonly')">
             <span class="key-status" id="status-eventbrite"></span>
             <div class="llm-meta">
               <span class="llm-badge {% if not eventbrite_ok %}llm-badge-missing{% endif %}" id="badge-eventbrite">
@@ -199,7 +200,8 @@
             <div class="key-input-wrap" id="wrap-{{ llm.id }}">
               <input type="password" id="key-{{ llm.id }}"
                 placeholder="{% if llm.has_key %}{{ t.settings_key_replace }}{% else %}{{ t.settings_key_paste }}{% endif %}"
-                autocomplete="off" data-llm="{{ llm.id }}">
+                autocomplete="new-password" data-llm="{{ llm.id }}"
+                readonly onfocus="this.removeAttribute('readonly')">
               <span class="key-status" id="status-{{ llm.id }}"></span>
             </div>
             <div class="llm-meta">
