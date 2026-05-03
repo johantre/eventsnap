@@ -225,15 +225,25 @@ textarea:focus { border-color: #0a66c2; }
 
 .draft-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .draft-item {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; align-items: center;
   padding: 0.65rem 0.75rem;
   border: 1.5px solid #e4e4e7; border-radius: 8px;
-  text-decoration: none; color: inherit;
   transition: border-color 0.15s;
 }
 .draft-item:hover { border-color: #0a66c2; }
+.draft-link {
+  flex: 1; display: flex; justify-content: space-between; align-items: center;
+  text-decoration: none; color: inherit; min-width: 0;
+}
 .draft-title { font-size: 0.9rem; }
 .draft-meta { font-size: 0.8rem; color: #a1a1aa; }
+.draft-del-form { margin: 0; }
+.draft-del {
+  background: none; border: none; outline: none; cursor: pointer;
+  font-size: 1rem; padding: .1rem .3rem; border-radius: 4px;
+  color: #94a3b8; transition: color .15s; margin-left: 0.5rem;
+}
+.draft-del:hover { color: #ef4444; }
 
 .linkedin-hint {
   margin-left: auto;

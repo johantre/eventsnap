@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/manifest.json">
   <title>{{ t.index_title }}</title>
-  <link rel="stylesheet" href="/static/style.css?v=24">
+  <link rel="stylesheet" href="/static/style.css?v=25">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <meta property="og:title" content="EventSnap">
   <meta property="og:description" content="Generate a LinkedIn post draft for any event you're attending — paste session text or share a URL and get a ready-to-post draft in seconds.">
@@ -128,10 +128,16 @@
       <h2>{{ t.index_saved_drafts }}</h2>
       <div class="draft-list">
         {% for draft in drafts %}
-        <a href="/draft/{{ draft.id }}" class="draft-item">
-          <span class="draft-title">{{ draft.event_title }}</span>
-          <span class="draft-meta">{{ draft.updated_at[:10] }} {{ draft.updated_at[11:16] }}</span>
-        </a>
+        <div class="draft-item">
+          <a href="/draft/{{ draft.id }}" class="draft-link">
+            <span class="draft-title">{{ draft.event_title }}</span>
+            <span class="draft-meta">{{ draft.updated_at[:10] }} {{ draft.updated_at[11:16] }}</span>
+          </a>
+          <form action="/draft/{{ draft.id }}/delete" method="post" class="draft-del-form">
+            {{ csrf_field(request) | safe }}
+            <button type="submit" class="draft-del" title="Draft verwijderen" onclick="return confirm('Draft verwijderen?')">🗑️</button>
+          </form>
+        </div>
         {% endfor %}
       </div>
     </section>
